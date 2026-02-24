@@ -17,8 +17,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router";
+import type { Customer } from "../domain/customer";
 
-const mockCustomers = [
+const mockCustomers: Customer[] = [
   {
     id: 1,
     name: "Juan Pérez",
@@ -56,13 +57,13 @@ const mockCustomers = [
 export const CustomerListPage = () => {
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Clientes</h1>
           <p className="text-gray-600">Administra tu base de clientes</p>
         </div>
-        <Link to="/customers/new">
-          <Button>+ Nuevo Cliente</Button>
+        <Link to="/customers/new" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">+ Nuevo Cliente</Button>
         </Link>
       </div>
 
@@ -71,7 +72,10 @@ export const CustomerListPage = () => {
           <CardTitle>Lista de Clientes</CardTitle>
           <CardDescription>Todos tus clientes registrados</CardDescription>
           <div className="pt-4">
-            <Input placeholder="Buscar cliente..." className="max-w-sm" />
+            <Input
+              placeholder="Buscar cliente..."
+              className="w-full sm:max-w-sm"
+            />
           </div>
         </CardHeader>
         <CardContent>

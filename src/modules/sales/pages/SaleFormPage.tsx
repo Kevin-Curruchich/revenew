@@ -17,29 +17,62 @@ import {
 } from "@/components/ui/select";
 import { Link, useParams } from "react-router";
 import { useState } from "react";
+import type { SaleItem } from "../domain/sale";
+import type { Product } from "../../products/domain/product";
 
-interface SaleItem {
-  id: number;
-  sku: string;
-  quantity: number;
-  unitPrice: number;
-  subtotal: number;
-}
+// Mock products for the selector
+const mockProducts: Product[] = [
+  {
+    id: 1,
+    sku: "PRD-001",
+    name: "Laptop Pro 15",
+    description: "",
+    price: 1299.99,
+    stock: 45,
+    status: "active",
+  },
+  {
+    id: 2,
+    sku: "PRD-002",
+    name: 'Monitor 4K 27"',
+    description: "",
+    price: 399.5,
+    stock: 12,
+    status: "active",
+  },
+  {
+    id: 3,
+    sku: "PRD-003",
+    name: "Teclado Mecánico",
+    description: "",
+    price: 89.99,
+    stock: 0,
+    status: "inactive",
+  },
+  {
+    id: 4,
+    sku: "PRD-004",
+    name: "Ratón Inalámbrico",
+    description: "",
+    price: 45.0,
+    stock: 120,
+    status: "active",
+  },
+];
 
 export const SaleFormPage = () => {
   const { id } = useParams();
   const isEditing = !!id;
 
   const [items, setItems] = useState<SaleItem[]>([
-    { id: 1, sku: "", quantity: 1, unitPrice: 0, subtotal: 0 },
+    { productId: 0, quantity: 1, unitPrice: 0, subtotal: 0 },
   ]);
 
   const addItem = () => {
     setItems([
       ...items,
       {
-        id: items.length + 1,
-        sku: "",
+        productId: 0,
         quantity: 1,
         unitPrice: 0,
         subtotal: 0,
@@ -47,8 +80,25 @@ export const SaleFormPage = () => {
     ]);
   };
 
-  const removeItem = (id: number) => {
-    setItems(items.filter((item) => item.id !== id));
+  const removeItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  const updateItem = (index: number, field: keyof SaleItem, value: any) => {
+    const newItems = [...items];
+    const item = { ...newItems[index], [field]: value };
+
+    if (field === "productId") {
+      const product = mockProducts.find((p) => p.id === Number(value));
+      if (product) {
+        item.product = product;
+        item.unitPrice = product.price;
+      }
+    }
+
+    item.subtotal = item.quantity * item.unitPrice;
+    newItems[index] = item;
+    setItems(newItems);
   };
 
   const calculateTotal = () => {
@@ -120,54 +170,90 @@ export const SaleFormPage = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {items.map((item) => (
+                {items.map((item, index) => (
                   <div
-                    key={item.id}
-                    className="flex gap-4 items-end p-4 border rounded-lg"
+                    key={index}
+                    className="flex flex-col md:flex-row gap-4 items-start md:items-end p-4 border rounded-lg relative"
                   >
-                    <div className="flex-1 space-y-2">
-                      <Label htmlFor={`sku-${item.id}`}>
-                        SKU / Descripción
-                      </Label>
-                      <Input id={`sku-${item.id}`} placeholder="Producto A" />
-                    </div>
-
-                    <div className="w-24 space-y-2">
-                      <Label htmlFor={`quantity-${item.id}`}>Cantidad</Label>
-                      <Input
-                        id={`quantity-${item.id}`}
-                        type="number"
-                        min="1"
-                        defaultValue="1"
-                      />
-                    </div>
-
-                    <div className="w-32 space-y-2">
-                      <Label htmlFor={`price-${item.id}`}>Precio Unit.</Label>
-                      <Input
-                        id={`price-${item.id}`}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                      />
-                    </div>
-
-                    <div className="w-32 space-y-2">
-                      <Label>Subtotal</Label>
-                      <Input value="$0.00" disabled />
-                    </div>
-
                     {items.length > 1 && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeItem(item.id)}
-                        className="text-red-600"
+                        onClick={() => removeItem(index)}
+                        className="absolute top-2 right-2 md:static text-red-600 md:mb-0"
                       >
                         ✕
                       </Button>
                     )}
+                    <div className="w-full md:flex-1 space-y-2">
+                      <Label htmlFor={`product-${index}`}>Producto</Label>
+                      <Select
+                        value={
+                          item.productId ? item.productId.toString() : undefined
+                        }
+                        onValueChange={(val) =>
+                          updateItem(index, "productId", Number(val))
+                        }
+                      >
+                        <SelectTrigger id={`product-${index}`}>
+                          <SelectValue placeholder="Selecciona un producto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockProducts.map((p) => (
+                            <SelectItem
+                              key={p.id}
+                              value={p.id.toString()}
+                              disabled={p.stock === 0}
+                            >
+                              {p.name} - ${p.price.toFixed(2)}{" "}
+                              {p.stock === 0 && "(Sin stock)"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex gap-4 w-full md:w-auto">
+                      <div className="flex-1 md:w-24 space-y-2">
+                        <Label htmlFor={`quantity-${index}`}>Cantidad</Label>
+                        <Input
+                          id={`quantity-${index}`}
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) =>
+                            updateItem(
+                              index,
+                              "quantity",
+                              Number(e.target.value),
+                            )
+                          }
+                        />
+                      </div>
+
+                      <div className="flex-1 md:w-32 space-y-2">
+                        <Label htmlFor={`price-${index}`}>Precio Unit.</Label>
+                        <Input
+                          id={`price-${index}`}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.unitPrice}
+                          onChange={(e) =>
+                            updateItem(
+                              index,
+                              "unitPrice",
+                              Number(e.target.value),
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="w-full md:w-32 space-y-2">
+                      <Label>Subtotal</Label>
+                      <Input value={`$${item.subtotal.toFixed(2)}`} disabled />
+                    </div>
                   </div>
                 ))}
               </div>

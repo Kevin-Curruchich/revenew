@@ -87,12 +87,12 @@ export const CustomerFormPage = () => {
               />
             </div>
 
-            <div className="flex gap-4">
-              <Button type="submit">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button type="submit" className="w-full sm:w-auto">
                 {isEditing ? "Actualizar Cliente" : "Crear Cliente"}
               </Button>
-              <Link to="/customers">
-                <Button type="button" variant="outline">
+              <Link to="/customers" className="w-full sm:w-auto">
+                <Button type="button" variant="outline" className="w-full">
                   Cancelar
                 </Button>
               </Link>

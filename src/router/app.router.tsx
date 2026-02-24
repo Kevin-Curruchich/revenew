@@ -7,6 +7,10 @@ import { LoginPage } from "@/modules/auth/pages/LoginPage";
 // Dashboard
 import { DashboardPage } from "@/modules/dashboard/pages/DashboardPage";
 
+// Products
+import { ProductListPage } from "@/modules/products/pages/ProductListPage";
+import { ProductFormPage } from "@/modules/products/pages/ProductFormPage";
+
 // Customers
 import { CustomerListPage } from "@/modules/customers/pages/CustomerListPage";
 import { CustomerFormPage } from "@/modules/customers/pages/CustomerFormPage";
@@ -34,39 +38,39 @@ export const appRoute = createBrowserRouter([
     element: <AppLayout />,
     children: [
       {
-        path: "/dashboard",
+        path: "dashboard",
         element: <DashboardPage />,
       },
       {
-        path: "/customers",
-        element: <CustomerListPage />,
+        path: "products",
+        children: [
+          { index: true, element: <ProductListPage /> },
+          { path: "new", element: <ProductFormPage /> },
+          { path: ":id", element: <ProductFormPage /> },
+        ],
       },
       {
-        path: "/customers/new",
-        element: <CustomerFormPage />,
+        path: "customers",
+        children: [
+          { index: true, element: <CustomerListPage /> },
+          { path: "new", element: <CustomerFormPage /> },
+          { path: ":id", element: <CustomerFormPage /> },
+        ],
       },
       {
-        path: "/customers/:id",
-        element: <CustomerFormPage />,
+        path: "sales",
+        children: [
+          { index: true, element: <SalesListPage /> },
+          { path: "new", element: <SaleFormPage /> },
+          { path: ":id", element: <SaleFormPage /> },
+        ],
       },
       {
-        path: "/sales",
-        element: <SalesListPage />,
-      },
-      {
-        path: "/sales/new",
-        element: <SaleFormPage />,
-      },
-      {
-        path: "/sales/:id",
-        element: <SaleFormPage />,
-      },
-      {
-        path: "/follow-up",
+        path: "follow-up",
         element: <FollowUpListPage />,
       },
       {
-        path: "/calendar",
+        path: "calendar",
         element: <CalendarPage />,
       },
     ],

@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router";
+import type { FollowUp, FollowUpStatus } from "../domain/follow-up";
 
-const mockFollowUps = [
+const mockFollowUps: FollowUp[] = [
   {
     id: 1,
     customer: "Juan Pérez",
@@ -66,7 +67,7 @@ const mockFollowUps = [
 ];
 
 export const FollowUpListPage = () => {
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: FollowUpStatus) => {
     const variants = {
       overdue: { variant: "destructive" as const, label: "Atrasado" },
       urgent: { variant: "default" as const, label: "Urgente" },
@@ -79,19 +80,29 @@ export const FollowUpListPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Seguimiento</h1>
           <p className="text-gray-600">Clientes que requieren atención</p>
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <Button variant="outline">Todos</Button>
-        <Button variant="outline">Atrasados</Button>
-        <Button variant="outline">7 días</Button>
-        <Button variant="outline">14 días</Button>
-        <Button variant="outline">30 días</Button>
+      <div className="flex flex-wrap gap-2 sm:gap-4">
+        <Button variant="outline" className="flex-1 sm:flex-none">
+          Todos
+        </Button>
+        <Button variant="outline" className="flex-1 sm:flex-none">
+          Atrasados
+        </Button>
+        <Button variant="outline" className="flex-1 sm:flex-none">
+          7 días
+        </Button>
+        <Button variant="outline" className="flex-1 sm:flex-none">
+          14 días
+        </Button>
+        <Button variant="outline" className="flex-1 sm:flex-none">
+          30 días
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
