@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      release_message:
+        description: Optional custom release message for Firebase Hosting
+        required: false
+        type: string
 
 jobs:
   deploy:
@@ -22,6 +27,24 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Resolve deploy metadata
+        run: |
+          APP_VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version)")
+          SHORT_SHA="${GITHUB_SHA::7}"
+          MANUAL_MESSAGE="${{ github.event.inputs.release_message || '' }}"
+
+          if [ -n "$MANUAL_MESSAGE" ]; then
+            DEPLOY_MESSAGE="$MANUAL_MESSAGE"
+          else
+            DEPLOY_MESSAGE="release v${APP_VERSION} (${SHORT_SHA})"
+          fi
+
+          echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
+          echo "DEPLOY_MESSAGE=$DEPLOY_MESSAGE" >> "$GITHUB_ENV"
+
+      - name: Show deploy metadata
+        run: echo "Deploying version $APP_VERSION with message '$DEPLOY_MESSAGE'"
 
       - name: Build
         env:
@@ -44,4 +67,4 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-        run: firebase deploy --only hosting --project "$FIREBASE_PROJECT_ID" --non-interactive
+        run: firebase deploy --only hosting --project "$FIREBASE_PROJECT_ID" --message "$DEPLOY_MESSAGE" --non-interactive

@@ -10,7 +10,9 @@ This project uses GitHub Actions for continuous integration and continuous deplo
 
 - `.github/workflows/deploy-firebase.yml`
   - Trigger: pushes to `main` and manual dispatch.
-  - Runs: dependency install, production build, deploy to Firebase Hosting.
+  - Runs: dependency install, resolves app version from `package.json`, production build, deploy to Firebase Hosting.
+  - Deploy message format by default: `release v<package-version> (<short-sha>)`.
+  - Manual dispatch supports custom `release_message` input.
 
 ## Required GitHub Secrets
 
