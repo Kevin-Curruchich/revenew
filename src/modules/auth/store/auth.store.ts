@@ -70,7 +70,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             isFetchingProfile: false,
             error: null,
           });
-        } catch (err) {
+        } catch {
           set({
             user: null,
             isLoading: false,

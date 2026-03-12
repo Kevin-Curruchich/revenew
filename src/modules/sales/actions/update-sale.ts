@@ -2,7 +2,7 @@ import { revenewApi } from "@/api/revenewApi";
 import type { Sale } from "../domain/sale";
 import type { CreateSaleData } from "./create-sale";
 
-export interface UpdateSaleData extends CreateSaleData {}
+export type UpdateSaleData = CreateSaleData;
 
 export const updateSale = async (
   saleId: string,

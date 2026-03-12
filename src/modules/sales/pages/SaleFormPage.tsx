@@ -1,7 +1,17 @@
 import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 
-import { useForm, useFieldArray, useWatch, Controller } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  useWatch,
+  Controller,
+  type Control,
+  type UseFormRegister,
+  type UseFormSetValue,
+  type FieldErrors,
+  type FieldArrayWithId,
+} from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -24,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Product } from "../../products/domain/product";
+import type { Product, ProductStatus } from "../../products/domain/product";
 import { useProducts } from "../../products/hooks/useProducts";
 import { useCustomers } from "../../customers/hooks/useCustomers";
 
@@ -112,7 +122,7 @@ export const SaleFormPage = () => {
             name: item.product_name,
             sku: item.product_sku,
             price: item.product_price,
-            status: item.product_status as any,
+            status: item.product_status as ProductStatus,
             description: null,
             stock: 0,
             min_stock: 0,
@@ -356,13 +366,13 @@ export const SaleFormPage = () => {
 
 interface ItemRowProps {
   index: number;
-  field: any;
-  control: any;
-  register: any;
-  setValue: any;
+  field: FieldArrayWithId<SaleFormData, "items", "id">;
+  control: Control<SaleFormData>;
+  register: UseFormRegister<SaleFormData>;
+  setValue: UseFormSetValue<SaleFormData>;
   remove: (index: number) => void;
   defaultProducts: Product[];
-  errors: any;
+  errors: FieldErrors<SaleFormData>;
   fieldsLength: number;
 }
 

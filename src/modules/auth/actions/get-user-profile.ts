@@ -7,7 +7,7 @@ export const getUserProfile = async () => {
     const user = response.data;
 
     return user;
-  } catch (err) {
+  } catch {
     return null;
   }
 };
