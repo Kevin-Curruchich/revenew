@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AuthGuard, LoginGuard } from "@/modules/auth/components/AuthGuard";
 
 // Auth
 import { LoginPage } from "@/modules/auth/pages/LoginPage";
@@ -28,50 +29,61 @@ import { CalendarPage } from "@/modules/calendar/pages/CalendarPage";
 export const appRoute = createBrowserRouter([
   {
     path: "/login",
-    element: <LoginPage />,
+    element: <LoginGuard />,
+    children: [
+      {
+        index: true,
+        element: <LoginPage />,
+      },
+    ],
   },
   {
     path: "/",
     element: <Navigate to="/dashboard" replace />,
   },
   {
-    element: <AppLayout />,
+    element: <AuthGuard />,
     children: [
       {
-        path: "dashboard",
-        element: <DashboardPage />,
-      },
-      {
-        path: "products",
+        element: <AppLayout />,
         children: [
-          { index: true, element: <ProductListPage /> },
-          { path: "new", element: <ProductFormPage /> },
-          { path: ":id", element: <ProductFormPage /> },
+          {
+            path: "dashboard",
+            element: <DashboardPage />,
+          },
+          {
+            path: "products",
+            children: [
+              { index: true, element: <ProductListPage /> },
+              { path: "new", element: <ProductFormPage /> },
+              { path: ":id", element: <ProductFormPage /> },
+            ],
+          },
+          {
+            path: "customers",
+            children: [
+              { index: true, element: <CustomerListPage /> },
+              { path: "new", element: <CustomerFormPage /> },
+              { path: ":id", element: <CustomerFormPage /> },
+            ],
+          },
+          {
+            path: "sales",
+            children: [
+              { index: true, element: <SalesListPage /> },
+              { path: "new", element: <SaleFormPage /> },
+              { path: ":id", element: <SaleFormPage /> },
+            ],
+          },
+          {
+            path: "follow-up",
+            element: <FollowUpListPage />,
+          },
+          {
+            path: "calendar",
+            element: <CalendarPage />,
+          },
         ],
-      },
-      {
-        path: "customers",
-        children: [
-          { index: true, element: <CustomerListPage /> },
-          { path: "new", element: <CustomerFormPage /> },
-          { path: ":id", element: <CustomerFormPage /> },
-        ],
-      },
-      {
-        path: "sales",
-        children: [
-          { index: true, element: <SalesListPage /> },
-          { path: "new", element: <SaleFormPage /> },
-          { path: ":id", element: <SaleFormPage /> },
-        ],
-      },
-      {
-        path: "follow-up",
-        element: <FollowUpListPage />,
-      },
-      {
-        path: "calendar",
-        element: <CalendarPage />,
       },
     ],
   },

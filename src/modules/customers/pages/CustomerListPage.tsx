@@ -15,46 +15,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router";
-import type { Customer } from "../domain/customer";
 
-const mockCustomers: Customer[] = [
-  {
-    id: 1,
-    name: "Juan Pérez",
-    email: "juan@email.com",
-    phone: "+52 123 456 7890",
-    lastPurchase: "2025-12-15",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "María García",
-    email: "maria@email.com",
-    phone: "+52 098 765 4321",
-    lastPurchase: "2025-11-28",
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "Carlos López",
-    email: "carlos@email.com",
-    phone: "+52 555 123 4567",
-    lastPurchase: "2025-10-10",
-    status: "inactive",
-  },
-  {
-    id: 4,
-    name: "Ana Martínez",
-    email: "ana@email.com",
-    phone: "+52 333 222 1111",
-    lastPurchase: "2026-01-05",
-    status: "active",
-  },
-];
+import { useCustomers } from "../hooks/useCustomers";
 
 export const CustomerListPage = () => {
+  const { data, isLoading } = useCustomers();
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -79,44 +46,44 @@ export const CustomerListPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Teléfono</TableHead>
-                <TableHead>Última Compra</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockCustomers.map((customer) => (
-                <TableRow key={customer.id}>
-                  <TableCell className="font-medium">{customer.name}</TableCell>
-                  <TableCell>{customer.email}</TableCell>
-                  <TableCell>{customer.phone}</TableCell>
-                  <TableCell>{customer.lastPurchase}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        customer.status === "active" ? "default" : "secondary"
-                      }
-                    >
-                      {customer.status === "active" ? "Activo" : "Inactivo"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Link to={`/customers/${customer.id}`}>
-                      <Button variant="ghost" size="sm">
-                        Ver
-                      </Button>
-                    </Link>
-                  </TableCell>
+          {isLoading ? (
+            <p>Cargando clientes...</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Teléfono</TableHead>
+                  <TableHead>Dirección</TableHead>
+                  <TableHead className="text-right">Creado</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {data?.data.map((customer) => (
+                  <TableRow key={customer.id}>
+                    <TableCell className="font-medium">
+                      {customer.name}
+                    </TableCell>
+                    <TableCell>{customer.email}</TableCell>
+                    <TableCell>{customer.phone}</TableCell>
+                    <TableCell>{customer.address}</TableCell>
+                    <TableCell className="text-right">
+                      {customer.created_at_formatted}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link to={`/customers/${customer.id}`}>
+                        <Button variant="ghost" size="sm">
+                          Ver
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

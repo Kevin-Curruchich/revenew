@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
 
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: "📊" },
@@ -14,6 +15,8 @@ const navItems = [
 
 export const AppLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -34,9 +37,6 @@ export const AppLayout = () => {
               <Link to="/dashboard">
                 <h1 className="text-2xl font-bold text-blue-600">Revenew</h1>
               </Link>
-              <span className="text-sm text-gray-500 hidden sm:inline">
-                Admin Panel
-              </span>
             </div>
 
             {/* Mobile Menu Toggle */}
@@ -50,14 +50,24 @@ export const AppLayout = () => {
               </Button>
             </div>
 
-            {/* <div className="hidden md:flex items-center gap-4">
-              <span className="text-sm text-gray-600">usuario@revenew.com</span>
-              <Link to="/login">
-                <Button variant="outline" size="sm">
-                  Cerrar Sesión
-                </Button>
-              </Link>
-            </div> */}
+            <div className="hidden md:flex items-center gap-4">
+              {user && (
+                <span className="text-sm text-gray-600">
+                  {user.display_name}
+                </span>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  await logout();
+                  navigate("/login");
+                }}
+              >
+                <LogOut className="h-4 w-4 mr-1" />
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
         </div>
       </header>

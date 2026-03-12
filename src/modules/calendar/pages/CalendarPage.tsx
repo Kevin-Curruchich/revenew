@@ -1,3 +1,6 @@
+import type React from "react";
+import { useSearchParams } from "react-router";
+import type { DayButton } from "react-day-picker";
 import {
   Card,
   CardContent,
@@ -5,24 +8,70 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useCalendarEvents } from "../hooks/useCalendarEvents";
+import {
+  formatDateToYMD,
+  getMonthEnd,
+  getMonthStart,
+  parseDateString,
+} from "../helpers/date-helpers";
 
-const mockEvents = [
-  { date: "2026-01-22", customer: "Juan Pérez", type: "overdue" },
-  { date: "2026-01-25", customer: "María García", type: "upcoming" },
-  { date: "2026-01-25", customer: "Luis Hernández", type: "upcoming" },
-  { date: "2026-01-28", customer: "Carlos López", type: "upcoming" },
-  { date: "2026-02-05", customer: "Ana Martínez", type: "upcoming" },
-];
+interface CalendarDayButtonProps extends React.ComponentProps<
+  typeof DayButton
+> {
+  getEventsForDate?: (date: Date) => Array<{ type: "overdue" | "upcoming" }>;
+}
+
+const CustomCalendarDayButton = ({
+  getEventsForDate,
+  day,
+  ...props
+}: CalendarDayButtonProps) => {
+  const events = getEventsForDate ? getEventsForDate(day.date) : [];
+  const hasOverdue = events.some((e) => e.type === "overdue");
+  const hasUpcoming = events.some((e) => e.type === "upcoming");
+
+  return (
+    <div className="relative w-full h-full p-4">
+      <CalendarDayButton day={day} {...props} />
+      {(hasOverdue || hasUpcoming) && (
+        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
+          {hasOverdue && (
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+          )}
+          {hasUpcoming && (
+            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const CalendarPage = () => {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Get date from query params, default to current date
+  const dateParam = searchParams.get("date");
+  const date = dateParam ? parseDateString(dateParam) : new Date();
+
+  const monthStart = getMonthStart(date);
+  const monthEnd = getMonthEnd(date);
+
+  const { data: calendarData } = useCalendarEvents({
+    start_date: formatDateToYMD(monthStart),
+    end_date: formatDateToYMD(monthEnd),
+  });
+
+  const dates = calendarData?.dates ?? [];
+  const summary = calendarData?.summary;
 
   const getEventsForDate = (selectedDate: Date) => {
-    const dateStr = selectedDate.toISOString().split("T")[0];
-    return mockEvents.filter((event) => event.date === dateStr);
+    const dateStr = formatDateToYMD(selectedDate);
+    const dayData = dates.find((entry) => entry.date === dateStr);
+    return dayData?.events ?? [];
   };
 
   const selectedEvents = date ? getEventsForDate(date) : [];
@@ -46,8 +95,29 @@ export const CalendarPage = () => {
             <Calendar
               mode="single"
               selected={date}
-              onSelect={setDate}
+              onSelect={(newDate) => {
+                if (newDate) {
+                  setSearchParams({
+                    date: formatDateToYMD(newDate),
+                  });
+                }
+              }}
+              month={date}
+              onMonthChange={(newMonth) => {
+                // When month changes, update to the first day of that month
+                setSearchParams({
+                  date: formatDateToYMD(newMonth),
+                });
+              }}
               className="rounded-md border"
+              components={{
+                DayButton: (props) => (
+                  <CustomCalendarDayButton
+                    {...props}
+                    getEventsForDate={getEventsForDate}
+                  />
+                ),
+              }}
             />
           </CardContent>
         </Card>
@@ -103,6 +173,12 @@ export const CalendarPage = () => {
               <CardTitle>Leyenda</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
+              {summary && (
+                <div className="pb-2 text-sm text-gray-600 space-y-1">
+                  <p>Próximos: {summary.upcoming}</p>
+                  <p>Atrasados: {summary.overdue}</p>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
                 <span className="text-sm">Atrasados</span>
@@ -119,33 +195,6 @@ export const CalendarPage = () => {
           </Card>
         </div>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Próximos Eventos</CardTitle>
-          <CardDescription>Lista de próximas compras estimadas</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {mockEvents.map((event, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between p-3 border rounded-lg"
-              >
-                <div>
-                  <p className="font-medium">{event.customer}</p>
-                  <p className="text-sm text-gray-600">{event.date}</p>
-                </div>
-                <Badge
-                  variant={event.type === "overdue" ? "destructive" : "default"}
-                >
-                  {event.type === "overdue" ? "Atrasado" : "Próximo"}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

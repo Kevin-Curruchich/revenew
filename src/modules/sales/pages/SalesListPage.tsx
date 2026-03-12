@@ -17,130 +17,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router";
-import type { Sale } from "../domain/sale";
-import type { Product } from "../../products/domain/product";
 
-const mockProducts: Record<number, Product> = {
-  1: {
-    id: 1,
-    sku: "PRD-001",
-    name: "Laptop Pro 15",
-    description: "",
-    price: 1299.99,
-    stock: 45,
-    status: "active",
-  },
-  2: {
-    id: 2,
-    sku: "PRD-002",
-    name: 'Monitor 4K 27"',
-    description: "",
-    price: 399.5,
-    stock: 12,
-    status: "active",
-  },
-  3: {
-    id: 3,
-    sku: "PRD-003",
-    name: "Teclado Mecánico",
-    description: "",
-    price: 89.99,
-    stock: 0,
-    status: "inactive",
-  },
-  4: {
-    id: 4,
-    sku: "PRD-004",
-    name: "Ratón Inalámbrico",
-    description: "",
-    price: 45.0,
-    stock: 120,
-    status: "active",
-  },
-};
-
-const mockSales: Sale[] = [
-  {
-    id: 1,
-    customer: "Juan Pérez",
-    date: "2026-01-15",
-    total: "$2,450.00",
-    items: [
-      {
-        productId: 1,
-        product: mockProducts[1],
-        quantity: 1,
-        unitPrice: 1299.99,
-        subtotal: 1299.99,
-      },
-      {
-        productId: 2,
-        product: mockProducts[2],
-        quantity: 2,
-        unitPrice: 575.0,
-        subtotal: 1150.01,
-      },
-    ],
-    nextPurchase: "2026-02-15",
-  },
-  {
-    id: 2,
-    customer: "María García",
-    date: "2026-01-18",
-    total: "$1,890.00",
-    items: [
-      {
-        productId: 3,
-        product: mockProducts[3],
-        quantity: 2,
-        unitPrice: 945.0,
-        subtotal: 1890.0,
-      },
-    ],
-    nextPurchase: "2026-02-20",
-  },
-  {
-    id: 3,
-    customer: "Carlos López",
-    date: "2026-01-10",
-    total: "$3,200.00",
-    items: [
-      {
-        productId: 1,
-        product: mockProducts[1],
-        quantity: 2,
-        unitPrice: 1299.99,
-        subtotal: 2599.98,
-      },
-      {
-        productId: 4,
-        product: mockProducts[4],
-        quantity: 3,
-        unitPrice: 200.0,
-        subtotal: 600.02,
-      },
-    ],
-    nextPurchase: "2026-02-10",
-  },
-  {
-    id: 4,
-    customer: "Ana Martínez",
-    date: "2026-01-20",
-    total: "$950.00",
-    items: [
-      {
-        productId: 2,
-        product: mockProducts[2],
-        quantity: 1,
-        unitPrice: 950.0,
-        subtotal: 950.0,
-      },
-    ],
-    nextPurchase: "2026-02-22",
-  },
-];
+import { useSales } from "../hooks/useSales";
 
 export const SalesListPage = () => {
+  const { data } = useSales({ offset: 0, limit: 10 });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -174,32 +56,43 @@ export const SalesListPage = () => {
                 <TableHead>ID</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Fecha</TableHead>
-                <TableHead>Items</TableHead>
+                <TableHead>Productos</TableHead>
                 <TableHead>Total</TableHead>
-                <TableHead>Próxima Compra Estimada</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockSales.map((sale) => (
+              {data?.data.map((sale) => (
                 <TableRow key={sale.id}>
-                  <TableCell className="font-medium">#{sale.id}</TableCell>
-                  <TableCell>{sale.customer}</TableCell>
+                  <TableCell className="font-medium">
+                    #{sale.id.slice(0, 8)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{sale.customer_name}</span>
+                      {sale.customer_company && (
+                        <span className="text-xs text-gray-500">
+                          {sale.customer_company}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{sale.date}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <Badge variant="outline" className="w-fit">
-                        {sale.items.length} items
+                        {sale.items.length} producto
+                        {sale.items.length !== 1 ? "s" : ""}
                       </Badge>
                       <span className="text-xs text-gray-500">
-                        {sale.items
-                          .map((item) => item.product?.name)
-                          .join(", ")}
+                        {sale.items.map((item) => item.product_name).join(", ")}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="font-semibold">{sale.total}</TableCell>
-                  <TableCell>{sale.nextPurchase}</TableCell>
+                  <TableCell className="font-semibold">
+                    ${sale.total.toFixed(2)}
+                  </TableCell>
+
                   <TableCell className="text-right">
                     <Link to={`/sales/${sale.id}`}>
                       <Button variant="ghost" size="sm">

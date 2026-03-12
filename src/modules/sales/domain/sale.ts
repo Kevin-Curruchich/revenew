@@ -1,18 +1,31 @@
-import type { Product } from "../../products/domain/product";
+// Sale domain interfaces updated to match API contract
 
 export interface SaleItem {
-  productId: number;
-  product?: Product;
+  id: string;
+  product_id: string;
   quantity: number;
-  unitPrice: number; // The price of the product AT THE TIME OF SALE
+  unit_price: number;
   subtotal: number;
+  product_name: string;
+  product_sku: string;
+  product_price: number;
+  product_status: string;
 }
 
 export interface Sale {
-  id: number;
-  customer: string;
+  id: string;
+  customer_id: string;
+  user_id: string;
   date: string;
-  total: string;
+  total: number;
   items: SaleItem[];
-  nextPurchase: string;
+  created_at: string;
+  updated_at: string;
+  created_at_formatted: string;
+  updated_at_formatted: string;
+  user_name: string;
+  user_email: string;
+  customer_name: string;
+  customer_company: string | null;
+  customer_email: string | null;
 }
