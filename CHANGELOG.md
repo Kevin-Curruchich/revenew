@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.1.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.0.0...v0.1.0) (2026-03-13)
+
+
+### Features
+
+* add logo SVG and update theme management with local storage support ([f198615](https://github.com/Kevin-Curruchich/revenew/commit/f198615b56431bee27b87ca8badc2798c80e7c55))
+* add recommended release flow and command references to CI/CD documentation ([b3efcea](https://github.com/Kevin-Curruchich/revenew/commit/b3efceaaaafb9d3993c21e63477aae8b6cafff00))
+* implement dashboard summary and follow-up features with improved UI and data handling ([fc44301](https://github.com/Kevin-Curruchich/revenew/commit/fc4430167ee3d063fc17ff48c7f19473e7611604))
+
 ## 0.0.0 (2026-03-12)
 
 
