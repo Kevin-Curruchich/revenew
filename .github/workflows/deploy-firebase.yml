@@ -14,6 +14,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -68,3 +70,20 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: firebase deploy --only hosting --project "$FIREBASE_PROJECT_ID" --message "$DEPLOY_MESSAGE" --non-interactive
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="v${APP_VERSION}"
+          RELEASE_TITLE="${TAG_NAME}"
+          RELEASE_NOTES="${DEPLOY_MESSAGE}"
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release edit "$TAG_NAME" --title "$RELEASE_TITLE" --notes "$RELEASE_NOTES"
+          else
+            gh release create "$TAG_NAME" \
+              --target "$GITHUB_SHA" \
+              --title "$RELEASE_TITLE" \
+              --notes "$RELEASE_NOTES"
+          fi
