@@ -45,6 +45,44 @@ Use `.env` locally and keep it untracked. Use `.env.example` as the template of 
 
 Protect `main` and require the CI workflow status check before merge.
 
+## Recommended Release Flow
+
+Use this flow every time you want to publish a new production version.
+
+1. Preview the release result without changing files:
+
+```bash
+yarn release:dry
+```
+
+2. Run one release command depending on change type:
+
+```bash
+yarn release:patch
+```
+
+```bash
+yarn release:feature
+```
+
+```bash
+yarn release:major
+```
+
+3. Push commits and tags to trigger deployment tracking:
+
+```bash
+git push origin main --follow-tags
+```
+
+### Command reference
+
+- `yarn release:patch`: bugfix release (`x.y.z` -> `x.y.z+1`)
+- `yarn release:feature`: feature release (`x.y.z` -> `x.y+1.0`)
+- `yarn release:major`: breaking-change release (`x.y.z` -> `x+1.0.0`)
+- `yarn release:custom -- <version>`: exact version override
+- `yarn release:first`: first release only
+
 ## Troubleshooting
 
 - Build fails in CI due to missing envs:

@@ -10,7 +10,11 @@
     "preview": "vite preview",
     "release": "standard-version",
     "release:first": "standard-version --first-release",
-    "release:dry": "standard-version --dry-run"
+    "release:dry": "standard-version --dry-run",
+    "release:patch": "standard-version --release-as patch",
+    "release:feature": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "release:custom": "standard-version --release-as"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
