@@ -28,14 +28,14 @@ export const AppLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-50">
+      <header className="bg-card/95 border-b border-border sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-card/85">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <Link to="/dashboard">
-                <h1 className="text-2xl font-bold text-blue-600">Revenew</h1>
+                <img src="/logo.svg" alt="Revenew" className="h-5 w-auto" />
               </Link>
             </div>
 
@@ -52,7 +52,7 @@ export const AppLayout = () => {
 
             <div className="hidden md:flex items-center gap-4">
               {user && (
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                   {user.display_name}
                 </span>
               )}
@@ -75,7 +75,7 @@ export const AppLayout = () => {
       <div className="flex flex-col md:flex-row">
         {/* Mobile Navigation Overlay */}
         {isMobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 top-[73px] z-40 bg-white overflow-y-auto">
+          <div className="md:hidden fixed inset-0 top-[73px] z-40 bg-card border-t border-border overflow-y-auto">
             <nav className="p-4 space-y-2">
               {navItems.map((item) => {
                 const isActive = location.pathname.startsWith(item.path);
@@ -101,7 +101,7 @@ export const AppLayout = () => {
         )}
 
         {/* Desktop Sidebar */}
-        <aside className="hidden md:block w-64 bg-white border-r min-h-[calc(100vh-73px)] sticky top-[73px]">
+        <aside className="hidden md:block w-64 bg-card border-r border-border min-h-[calc(100vh-73px)] sticky top-[73px]">
           <nav className="p-4 space-y-2">
             {navItems.map((item) => {
               const isActive = location.pathname.startsWith(item.path);
