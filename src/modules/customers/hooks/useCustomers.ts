@@ -14,5 +14,6 @@ export const useCustomers = (params: GetCustomerParams = {}) => {
       params.search ?? "",
     ],
     queryFn: () => getClients(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };

@@ -17,20 +17,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router";
-import type { FollowUpStatus } from "../domain/follow-up";
 import { useFollowUps } from "../hooks/useFollowUps";
 import type { FollowUpFilter } from "../actions/get-follow-ups";
-
-const getStatusBadge = (status: FollowUpStatus) => {
-  const variants = {
-    overdue: { variant: "destructive" as const, label: "Atrasado" },
-    urgent: { variant: "default" as const, label: "Urgente" },
-    upcoming: { variant: "secondary" as const, label: "Próximo" },
-    normal: { variant: "outline" as const, label: "Normal" },
-  };
-
-  return variants[status as keyof typeof variants] || variants.normal;
-};
+import { getFollowUpStatusBadge } from "../helpers/get-follow-up-status-badge";
 
 export const FollowUpListPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -119,7 +108,7 @@ export const FollowUpListPage = () => {
                   </TableRow>
                 ) : (
                   data?.data.map((followUp) => {
-                    const statusInfo = getStatusBadge(followUp.status);
+                    const statusInfo = getFollowUpStatusBadge(followUp.status);
                     return (
                       <TableRow key={followUp.customer_id}>
                         <TableCell className="font-medium">

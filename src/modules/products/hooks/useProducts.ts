@@ -14,5 +14,6 @@ export const useProducts = (params: GetProductsParams = {}) => {
       params.search ?? "",
     ],
     queryFn: () => getProducts(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };

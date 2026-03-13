@@ -39,9 +39,15 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
+          <img
+            src="/logo.svg"
+            alt="Revenew"
+            className="h-6 w-auto m-auto mb-4"
+          />
+
           <CardTitle>Iniciar Sesión</CardTitle>
           <CardDescription>
             Ingresa tus credenciales para acceder a Revenew
@@ -69,7 +75,7 @@ export const LoginPage = () => {
                 required
               />
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <Button className="w-full" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Iniciando..." : "Iniciar Sesión"}
             </Button>
