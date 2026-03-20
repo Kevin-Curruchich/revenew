@@ -7,6 +7,7 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: "📊" },
   { path: "/products", label: "Productos", icon: "📦" },
+  { path: "/purchases", label: "Compras", icon: "🛒" },
   { path: "/customers", label: "Clientes", icon: "👥" },
   { path: "/sales", label: "Ventas", icon: "💰" },
   { path: "/follow-up", label: "Seguimiento", icon: "📋" },

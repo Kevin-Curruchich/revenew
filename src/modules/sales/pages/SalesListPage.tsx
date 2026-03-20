@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router";
+import { formatCurrency } from "@/lib/formatters";
 
 import { useSales } from "../hooks/useSales";
 
@@ -90,7 +91,7 @@ export const SalesListPage = () => {
                     </div>
                   </TableCell>
                   <TableCell className="font-semibold">
-                    ${sale.total.toFixed(2)}
+                    {formatCurrency(sale.total)}
                   </TableCell>
 
                   <TableCell className="text-right">

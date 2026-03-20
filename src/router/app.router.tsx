@@ -20,6 +20,10 @@ import { CustomerFormPage } from "@/modules/customers/pages/CustomerFormPage";
 import { SalesListPage } from "@/modules/sales/pages/SalesListPage";
 import { SaleFormPage } from "@/modules/sales/pages/SaleFormPage";
 
+// Purchases
+import { PurchasesListPage } from "@/modules/purchases/pages/PurchasesListPage";
+import { PurchaseFormPage } from "@/modules/purchases/pages/PurchaseFormPage";
+
 // Follow-up
 import { FollowUpListPage } from "@/modules/follow-up/pages/FollowUpListPage";
 
@@ -73,6 +77,14 @@ export const appRoute = createBrowserRouter([
               { index: true, element: <SalesListPage /> },
               { path: "new", element: <SaleFormPage /> },
               { path: ":id", element: <SaleFormPage /> },
+            ],
+          },
+          {
+            path: "purchases",
+            children: [
+              { index: true, element: <PurchasesListPage /> },
+              { path: "new", element: <PurchaseFormPage /> },
+              { path: ":id", element: <PurchaseFormPage /> },
             ],
           },
           {

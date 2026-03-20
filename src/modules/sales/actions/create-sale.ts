@@ -4,7 +4,8 @@ import type { Sale } from "../domain/sale";
 export interface SaleItemPayload {
   productId: string;
   quantity: number;
-  unitPrice: number;
+  unitPrice?: number;
+  pricingExceptionReason?: string;
 }
 
 export interface CreateSaleData {

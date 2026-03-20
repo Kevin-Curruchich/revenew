@@ -19,6 +19,18 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router";
 import { useProducts } from "../hooks/useProducts";
 
+const getEarningLabel = (
+  mode: "percent" | "fee",
+  percent: number,
+  feeAmount: number,
+) => {
+  if (mode === "percent") {
+    return `${percent}%`;
+  }
+
+  return `Q${feeAmount.toFixed(2)}`;
+};
+
 export const ProductListPage = () => {
   const { data, isLoading } = useProducts({ offset: 0, limit: 10 });
   return (
@@ -28,9 +40,16 @@ export const ProductListPage = () => {
           <h1 className="text-3xl font-bold">Productos</h1>
           <p className="text-gray-600">Administra tu inventario y catálogo</p>
         </div>
-        <Link to="/products/new" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">+ Nuevo Producto</Button>
-        </Link>
+        <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
+          <Link to="/purchases/new" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto">
+              + Registrar Compra
+            </Button>
+          </Link>
+          <Link to="/products/new" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">+ Nuevo Producto</Button>
+          </Link>
+        </div>
       </div>
 
       <Card>
@@ -55,7 +74,7 @@ export const ProductListPage = () => {
                 <TableRow>
                   <TableHead>SKU</TableHead>
                   <TableHead>Nombre</TableHead>
-                  <TableHead>Precio</TableHead>
+                  <TableHead>Ganancia</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
@@ -66,7 +85,15 @@ export const ProductListPage = () => {
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.sku}</TableCell>
                     <TableCell>{product.name}</TableCell>
-                    <TableCell>${product.price.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {getEarningLabel(
+                          product.earning_mode,
+                          product.earning_percent,
+                          product.earning_fee_amount,
+                        )}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={
@@ -90,11 +117,18 @@ export const ProductListPage = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link to={`/products/${product.id}`}>
-                        <Button variant="ghost" size="sm">
-                          Editar
-                        </Button>
-                      </Link>
+                      <div className="flex justify-end gap-2">
+                        <Link to={`/purchases/new?productId=${product.id}`}>
+                          <Button variant="outline" size="sm">
+                            Comprar
+                          </Button>
+                        </Link>
+                        <Link to={`/products/${product.id}`}>
+                          <Button variant="ghost" size="sm">
+                            Editar
+                          </Button>
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

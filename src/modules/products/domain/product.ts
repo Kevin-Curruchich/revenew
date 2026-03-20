@@ -1,12 +1,15 @@
 export type ProductStatus = "active" | "inactive";
 export type StockAlertStatus = "low_stock" | "out_of_stock" | "in_stock";
+export type ProductEarningMode = "percent" | "fee";
 
 export interface Product {
   id: string;
   sku: string;
   name: string;
   description: string | null;
-  price: number;
+  earning_mode: ProductEarningMode;
+  earning_percent: number;
+  earning_fee_amount: number;
   stock: number;
   min_stock: number;
   status: ProductStatus;

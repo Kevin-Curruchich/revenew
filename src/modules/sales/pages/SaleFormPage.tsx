@@ -34,25 +34,45 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Product, ProductStatus } from "../../products/domain/product";
+import type { Product } from "../../products/domain/product";
 import { useProducts } from "../../products/hooks/useProducts";
 import { useCustomers } from "../../customers/hooks/useCustomers";
+import { formatCurrency } from "@/lib/formatters";
 
 // Zod validation schema
-const saleFormSchema = z.object({
-  customerId: z.string().min(1, "El cliente es requerido"),
-  saleDate: z.string().min(1, "La fecha es requerida"),
-  items: z.array(
-    z.object({
-      id: z.string().optional(),
-      productId: z.string().min(1, "El producto es requerido"),
-      quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
-      unitPrice: z.number().min(0, "El precio debe ser mayor o igual a 0"),
-      subtotal: z.number(),
-      product: z.any().optional(),
-    }),
-  ),
-});
+const saleFormSchema = z
+  .object({
+    customerId: z.string().min(1, "El cliente es requerido"),
+    saleDate: z.string().min(1, "La fecha es requerida"),
+    items: z.array(
+      z.object({
+        id: z.string().optional(),
+        productId: z.string().min(1, "El producto es requerido"),
+        quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
+        unitPrice: z
+          .number()
+          .min(0, "El precio debe ser mayor o igual a 0")
+          .optional(),
+        pricingExceptionReason: z.string().optional(),
+        subtotal: z.number(),
+        product: z.any().optional(),
+      }),
+    ),
+  })
+  .superRefine((value, ctx) => {
+    value.items.forEach((item, index) => {
+      const hasManualPrice = item.unitPrice !== undefined;
+      const hasReason = !!item.pricingExceptionReason?.trim();
+
+      if (hasManualPrice && !hasReason) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["items", index, "pricingExceptionReason"],
+          message: "Ingresa el motivo de la excepción de precio",
+        });
+      }
+    });
+  });
 
 type SaleFormData = z.infer<typeof saleFormSchema>;
 
@@ -82,7 +102,9 @@ export const SaleFormPage = () => {
     defaultValues: {
       customerId: "",
       saleDate: new Date().toISOString().split("T")[0], // Default to today's date
-      items: [{ productId: "", quantity: 1, unitPrice: 0, subtotal: 0 }],
+      items: [
+        { productId: "", quantity: 1, unitPrice: undefined, subtotal: 0 },
+      ],
     },
   });
 
@@ -116,21 +138,8 @@ export const SaleFormPage = () => {
           productId: item.product_id,
           quantity: item.quantity,
           unitPrice: item.unit_price,
+          pricingExceptionReason: item.pricing_exception_reason ?? "",
           subtotal: item.subtotal,
-          product: {
-            id: item.product_id,
-            name: item.product_name,
-            sku: item.product_sku,
-            price: item.product_price,
-            status: item.product_status as ProductStatus,
-            description: null,
-            stock: 0,
-            min_stock: 0,
-            created_at: "",
-            updated_at: "",
-            created_at_formatted: "",
-            updated_at_formatted: "",
-          },
         })),
       });
     }
@@ -145,6 +154,10 @@ export const SaleFormPage = () => {
           productId: item.productId,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
+          pricingExceptionReason:
+            item.unitPrice !== undefined
+              ? item.pricingExceptionReason?.trim() || undefined
+              : undefined,
         })),
       };
 
@@ -273,7 +286,8 @@ export const SaleFormPage = () => {
                     append({
                       productId: "",
                       quantity: 1,
-                      unitPrice: 0,
+                      unitPrice: undefined,
+                      pricingExceptionReason: "",
                       subtotal: 0,
                     })
                   }
@@ -318,7 +332,9 @@ export const SaleFormPage = () => {
                   <div className="border-t pt-4">
                     <div className="flex justify-between text-lg">
                       <span className="font-semibold">Total:</span>
-                      <span className="font-bold">${calculateTotal()}</span>
+                      <span className="font-bold">
+                        {formatCurrency(Number(calculateTotal()))}
+                      </span>
                     </div>
                   </div>
 
@@ -398,6 +414,7 @@ const ItemRow = ({
   });
 
   const subtotal = (watchedQuantity || 0) * (watchedPrice || 0);
+  const hasManualPrice = watchedPrice !== undefined;
 
   useEffect(() => {
     setValue(`items.${index}.subtotal`, subtotal, {
@@ -432,22 +449,14 @@ const ItemRow = ({
               value={field.value}
               onValueChange={(value) => {
                 field.onChange(value);
-                const product = defaultProducts.find((p) => p.id === value);
-                if (product) {
-                  const quantity = Number(watchedQuantity) || 0;
-                  setValue(`items.${index}.unitPrice`, product.price, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                  setValue(
-                    `items.${index}.subtotal`,
-                    quantity * product.price,
-                    {
-                      shouldDirty: true,
-                      shouldValidate: false,
-                    },
-                  );
-                }
+                setValue(`items.${index}.unitPrice`, undefined, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+                setValue(`items.${index}.pricingExceptionReason`, "", {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
               }}
             >
               <SelectTrigger id={`items.${index}.productId`}>
@@ -456,8 +465,7 @@ const ItemRow = ({
               <SelectContent>
                 {defaultProducts.map((p) => (
                   <SelectItem key={p.id} value={p.id} disabled={p.stock === 0}>
-                    {p.name} - ${p.price.toFixed(2)}{" "}
-                    {p.stock === 0 && "(Sin stock)"}
+                    {p.name} ({p.sku}) {p.stock === 0 && "(Sin stock)"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -490,14 +498,19 @@ const ItemRow = ({
         </div>
 
         <div className="flex-1 md:w-32 space-y-2">
-          <Label htmlFor={`items.${index}.unitPrice`}>Precio Unit.</Label>
+          <Label htmlFor={`items.${index}.unitPrice`}>
+            Precio Unit. (opcional)
+          </Label>
           <Input
             id={`items.${index}.unitPrice`}
             type="number"
             min="0"
             step="0.01"
             {...register(`items.${index}.unitPrice`, {
-              valueAsNumber: true,
+              setValueAs: (value) =>
+                value === "" || Number.isNaN(Number(value))
+                  ? undefined
+                  : Number(value),
             })}
           />
           {errors.items?.[index]?.unitPrice && (
@@ -507,6 +520,24 @@ const ItemRow = ({
           )}
         </div>
       </div>
+
+      {hasManualPrice && (
+        <div className="w-full space-y-2">
+          <Label htmlFor={`items.${index}.pricingExceptionReason`}>
+            Motivo excepción de precio
+          </Label>
+          <Input
+            id={`items.${index}.pricingExceptionReason`}
+            placeholder="Ej. descuento especial aprobado"
+            {...register(`items.${index}.pricingExceptionReason`)}
+          />
+          {errors.items?.[index]?.pricingExceptionReason && (
+            <p className="text-sm text-red-500">
+              {errors.items[index].pricingExceptionReason?.message}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="w-full md:w-32 space-y-2">
         <Label>Subtotal</Label>

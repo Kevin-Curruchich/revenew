@@ -1,11 +1,17 @@
 import { revenewApi } from "@/api/revenewApi";
-import type { Product, ProductStatus } from "../domain/product";
+import type {
+  Product,
+  ProductEarningMode,
+  ProductStatus,
+} from "../domain/product";
 
 export interface CreateProductData {
   sku: string;
   name: string;
   description: string;
-  price: number;
+  earningMode: ProductEarningMode;
+  earningPercent: number;
+  earningFeeAmount: number;
   stock: number;
   min_stock: number;
   status: ProductStatus;

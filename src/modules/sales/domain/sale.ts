@@ -8,8 +8,15 @@ export interface SaleItem {
   subtotal: number;
   product_name: string;
   product_sku: string;
-  product_price: number;
   product_status: string;
+  cost_basis_unit?: number;
+  gross_profit_unit?: number;
+  gross_profit_total?: number;
+  is_price_overridden?: boolean;
+  pricing_exception_reason?: string | null;
+  product_earning_mode?: "percent" | "fee" | string;
+  product_earning_percent?: number;
+  product_earning_fee_amount?: number;
 }
 
 export interface Sale {
