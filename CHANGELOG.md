@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.1.0...v0.2.0) (2026-03-20)
+
+
+### Features
+
+* enhance Firebase deployment workflow with GitHub Release creation and update functionality ([4d05421](https://github.com/Kevin-Curruchich/revenew/commit/4d0542184950331936d656535127fd0c5b6472c6))
+* **purchases:** add purchase management functionality ([b5c3f72](https://github.com/Kevin-Curruchich/revenew/commit/b5c3f722f936b1c577cc3fa7410a599e60ddf3b3))
+
 ## [0.1.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.0.0...v0.1.0) (2026-03-13)
 
 
