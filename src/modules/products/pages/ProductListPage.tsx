@@ -28,7 +28,7 @@ const getEarningLabel = (
     return `${percent}%`;
   }
 
-  return `Q${feeAmount.toFixed(2)}`;
+  return `Q${feeAmount?.toFixed(2) || "0.00"}`;
 };
 
 export const ProductListPage = () => {
