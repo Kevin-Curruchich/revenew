@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.1](https://github.com/Kevin-Curruchich/revenew/compare/v0.2.0...v0.2.1) (2026-03-31)
+
+
+### Features
+
+* update Firebase deployment workflow to trigger on tag pushes and pull requests ([a4c0e8d](https://github.com/Kevin-Curruchich/revenew/commit/a4c0e8db6af7bf978ae6c9878543f18580ac8745))
+
+
+### Bug Fixes
+
+* handle undefined feeAmount in getEarningLabel function ([9e9cc9e](https://github.com/Kevin-Curruchich/revenew/commit/9e9cc9e5af4bb887189fca8d4c80622e971e92fa))
+
 ## [0.2.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.1.0...v0.2.0) (2026-03-20)
 
 
