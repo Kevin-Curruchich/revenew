@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.4](https://github.com/Kevin-Curruchich/revenew/compare/v0.2.3...v0.2.4) (2026-03-31)
+
+
+### Bug Fixes
+
+* update getEarningLabel to accept feeAmount and percent as strings or numbers ([da2962f](https://github.com/Kevin-Curruchich/revenew/commit/da2962fb1b2f62db25300512b4fddbc15ce831cd))
+
 ### [0.2.3](https://github.com/Kevin-Curruchich/revenew/compare/v0.2.2...v0.2.3) (2026-03-31)
 
 ### [0.2.2](https://github.com/Kevin-Curruchich/revenew/compare/v0.2.1...v0.2.2) (2026-03-31)
