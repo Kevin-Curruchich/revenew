@@ -21,14 +21,17 @@ import { useProducts } from "../hooks/useProducts";
 
 const getEarningLabel = (
   mode: "percent" | "fee",
-  percent: string,
-  feeAmount: string,
+  percent: string | number,
+  feeAmount: string | number,
 ) => {
   if (mode === "percent") {
     return `${percent}%`;
   }
 
-  return `Q${parseFloat(feeAmount)?.toFixed(2) || "0.00"}`;
+  const parsedFee =
+    typeof feeAmount === "number" ? feeAmount : parseFloat(feeAmount);
+
+  return `Q${parsedFee?.toFixed(2) || "0.00"}`;
 };
 
 export const ProductListPage = () => {
