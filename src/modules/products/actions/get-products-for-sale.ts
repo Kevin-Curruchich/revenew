@@ -28,17 +28,10 @@ export interface GetProductsForSaleParams {
   search?: string;
 }
 
-export interface ProductsForSaleResponse {
-  data: ProductForSale[];
-  meta: {
-    total: number;
-  };
-}
-
 export const getProductsForSale = async (
   params: GetProductsForSaleParams,
-): Promise<ProductsForSaleResponse> => {
-  const response = await revenewApi.get<ProductsForSaleResponse>(
+): Promise<ProductForSale[]> => {
+  const response = await revenewApi.get<ProductForSale[]>(
     "/products/for-sale",
     {
       params,

@@ -2,11 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getProductsForSale,
   type GetProductsForSaleParams,
-  type ProductsForSaleResponse,
+  type ProductForSale,
 } from "../actions/get-products-for-sale";
 
 export const useProductsForSale = (params: GetProductsForSaleParams = {}) => {
-  return useQuery<ProductsForSaleResponse>({
+  return useQuery<ProductForSale[]>({
     queryKey: [
       "productsForSale",
       params.offset ?? 0,
