@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.2.4...v0.3.0) (2026-04-08)
+
+
+### Features
+
+* implement getProductsForSale action and useProductsForSale hook for product retrieval ([ab15243](https://github.com/Kevin-Curruchich/revenew/commit/ab1524382fffd3c1d46de11b1be8ed1e5329caec))
+
 ### [0.2.4](https://github.com/Kevin-Curruchich/revenew/compare/v0.2.3...v0.2.4) (2026-03-31)
 
 
