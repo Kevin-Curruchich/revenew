@@ -34,8 +34,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Product } from "../../products/domain/product";
-import { useProducts } from "../../products/hooks/useProducts";
+import { useProductsForSale } from "../../products/hooks/useProductsForSale";
+import type { ProductForSale } from "../../products/actions/get-products-for-sale";
 import { useCustomers } from "../../customers/hooks/useCustomers";
 import { formatCurrency } from "@/lib/formatters";
 
@@ -53,6 +53,7 @@ const saleFormSchema = z
           .number()
           .min(0, "El precio debe ser mayor o igual a 0")
           .optional(),
+        suggestedUnitPrice: z.number().optional(),
         pricingExceptionReason: z.string().optional(),
         subtotal: z.number(),
         product: z.any().optional(),
@@ -61,10 +62,13 @@ const saleFormSchema = z
   })
   .superRefine((value, ctx) => {
     value.items.forEach((item, index) => {
-      const hasManualPrice = item.unitPrice !== undefined;
+      const isPriceDifferent =
+        item.suggestedUnitPrice !== undefined &&
+        item.unitPrice !== undefined &&
+        item.unitPrice !== item.suggestedUnitPrice;
       const hasReason = !!item.pricingExceptionReason?.trim();
 
-      if (hasManualPrice && !hasReason) {
+      if (isPriceDifferent && !hasReason) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["items", index, "pricingExceptionReason"],
@@ -101,9 +105,15 @@ export const SaleFormPage = () => {
     resolver: zodResolver(saleFormSchema),
     defaultValues: {
       customerId: "",
-      saleDate: new Date().toISOString().split("T")[0], // Default to today's date
+      saleDate: "", // Default to today's date
       items: [
-        { productId: "", quantity: 1, unitPrice: undefined, subtotal: 0 },
+        {
+          productId: "",
+          quantity: 1,
+          unitPrice: undefined,
+          suggestedUnitPrice: undefined,
+          subtotal: 0,
+        },
       ],
     },
   });
@@ -113,9 +123,9 @@ export const SaleFormPage = () => {
     name: "items",
   });
 
-  // Always load default paginated products
-  const { data: defaultProductsData } = useProducts({ limit: 50 });
-  const defaultProducts = defaultProductsData?.data ?? [];
+  // Always load default paginated products for sale
+  const { data: defaultProductsData } = useProductsForSale({ limit: 50 });
+  const defaultProducts = defaultProductsData ?? [];
 
   // Load customers for selection
   const { data: customersData } = useCustomers({ limit: 100 });
@@ -133,32 +143,42 @@ export const SaleFormPage = () => {
       reset({
         customerId: sale.customer_id,
         saleDate: sale.date,
-        items: sale.items.map((item) => ({
-          id: item.id,
-          productId: item.product_id,
-          quantity: item.quantity,
-          unitPrice: item.unit_price,
-          pricingExceptionReason: item.pricing_exception_reason ?? "",
-          subtotal: item.subtotal,
-        })),
+        items: sale.items.map((item) => {
+          const product = defaultProducts.find((p) => p.id === item.product_id);
+          const suggestedPrice =
+            product && Number(product.first_available_lot.suggested_unit_price);
+          return {
+            id: item.id,
+            productId: item.product_id,
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            suggestedUnitPrice: suggestedPrice || undefined,
+            pricingExceptionReason: item.pricing_exception_reason ?? "",
+            subtotal: item.subtotal,
+          };
+        }),
       });
     }
-  }, [sale, isEditing, reset]);
+  }, [sale, isEditing, reset, defaultProducts]);
 
   const onSubmit = async (data: SaleFormData) => {
     try {
       const payload = {
         customerId: data.customerId,
         date: data.saleDate,
-        items: data.items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          pricingExceptionReason:
-            item.unitPrice !== undefined
+        items: data.items.map((item) => {
+          const isPriceDifferent =
+            item.suggestedUnitPrice !== undefined &&
+            item.unitPrice !== item.suggestedUnitPrice;
+          return {
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            pricingExceptionReason: isPriceDifferent
               ? item.pricingExceptionReason?.trim() || undefined
               : undefined,
-        })),
+          };
+        }),
       };
 
       if (isEditing && id) {
@@ -287,6 +307,7 @@ export const SaleFormPage = () => {
                       productId: "",
                       quantity: 1,
                       unitPrice: undefined,
+                      suggestedUnitPrice: undefined,
                       pricingExceptionReason: "",
                       subtotal: 0,
                     })
@@ -387,7 +408,7 @@ interface ItemRowProps {
   register: UseFormRegister<SaleFormData>;
   setValue: UseFormSetValue<SaleFormData>;
   remove: (index: number) => void;
-  defaultProducts: Product[];
+  defaultProducts: ProductForSale[];
   errors: FieldErrors<SaleFormData>;
   fieldsLength: number;
 }
@@ -413,8 +434,22 @@ const ItemRow = ({
     name: `items.${index}.unitPrice`,
   });
 
+  const watchedProductId = useWatch({
+    control,
+    name: `items.${index}.productId`,
+  });
+
   const subtotal = (watchedQuantity || 0) * (watchedPrice || 0);
-  const hasManualPrice = watchedPrice !== undefined;
+
+  // Get the selected product to compare prices
+  const selectedProduct = defaultProducts.find(
+    (p) => p.id === watchedProductId,
+  );
+  const suggestedPrice = selectedProduct
+    ? Number(selectedProduct.first_available_lot.suggested_unit_price)
+    : null;
+  const isPriceDifferent =
+    suggestedPrice !== null && watchedPrice !== suggestedPrice;
 
   useEffect(() => {
     setValue(`items.${index}.subtotal`, subtotal, {
@@ -426,7 +461,7 @@ const ItemRow = ({
   return (
     <div
       key={field.id}
-      className="flex flex-col md:flex-row gap-4 items-start md:items-end p-4 border rounded-lg relative"
+      className="flex flex-col gap-4 p-4 border rounded-lg relative"
     >
       {fieldsLength > 1 && (
         <Button
@@ -434,12 +469,12 @@ const ItemRow = ({
           variant="ghost"
           size="sm"
           onClick={() => remove(index)}
-          className="absolute top-2 right-2 md:static text-red-600 md:mb-0"
+          className="absolute top-2 right-2 text-red-600"
         >
           ✕
         </Button>
       )}
-      <div className="w-full md:flex-1 space-y-2">
+      <div className="space-y-2">
         <Label htmlFor={`items.${index}.productId`}>Producto</Label>
         <Controller
           name={`items.${index}.productId`}
@@ -448,11 +483,28 @@ const ItemRow = ({
             <Select
               value={field.value}
               onValueChange={(value) => {
+                const selectedProduct = defaultProducts.find(
+                  (p) => p.id === value,
+                );
                 field.onChange(value);
-                setValue(`items.${index}.unitPrice`, undefined, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                });
+                // Auto-populate price from suggested_unit_price
+                if (selectedProduct) {
+                  const suggestedPrice = Number(
+                    selectedProduct.first_available_lot.suggested_unit_price,
+                  );
+                  setValue(`items.${index}.unitPrice`, suggestedPrice, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                  setValue(
+                    `items.${index}.suggestedUnitPrice`,
+                    suggestedPrice,
+                    {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    },
+                  );
+                }
                 setValue(`items.${index}.pricingExceptionReason`, "", {
                   shouldDirty: true,
                   shouldValidate: true,
@@ -465,7 +517,8 @@ const ItemRow = ({
               <SelectContent>
                 {defaultProducts.map((p) => (
                   <SelectItem key={p.id} value={p.id} disabled={p.stock === 0}>
-                    {p.name} ({p.sku}) {p.stock === 0 && "(Sin stock)"}
+                    {p.name} ({p.sku}) - Stock: {p.stock}{" "}
+                    {p.stock === 0 && "(Sin stock)"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -479,8 +532,8 @@ const ItemRow = ({
         )}
       </div>
 
-      <div className="flex gap-4 w-full md:w-auto">
-        <div className="flex-1 md:w-24 space-y-2">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="space-y-2">
           <Label htmlFor={`items.${index}.quantity`}>Cantidad</Label>
           <Input
             id={`items.${index}.quantity`}
@@ -497,10 +550,8 @@ const ItemRow = ({
           )}
         </div>
 
-        <div className="flex-1 md:w-32 space-y-2">
-          <Label htmlFor={`items.${index}.unitPrice`}>
-            Precio Unit. (opcional)
-          </Label>
+        <div className="space-y-2">
+          <Label htmlFor={`items.${index}.unitPrice`}>Precio Unit.</Label>
           <Input
             id={`items.${index}.unitPrice`}
             type="number"
@@ -519,10 +570,15 @@ const ItemRow = ({
             </p>
           )}
         </div>
+
+        <div className="space-y-2">
+          <Label>Subtotal</Label>
+          <Input value={formatCurrency(subtotal)} disabled />
+        </div>
       </div>
 
-      {hasManualPrice && (
-        <div className="w-full space-y-2">
+      {isPriceDifferent && (
+        <div className="space-y-2">
           <Label htmlFor={`items.${index}.pricingExceptionReason`}>
             Motivo excepción de precio
           </Label>
@@ -538,11 +594,6 @@ const ItemRow = ({
           )}
         </div>
       )}
-
-      <div className="w-full md:w-32 space-y-2">
-        <Label>Subtotal</Label>
-        <Input value={`$${subtotal.toFixed(2)}`} disabled />
-      </div>
     </div>
   );
 };
