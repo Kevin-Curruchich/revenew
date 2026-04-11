@@ -272,8 +272,7 @@ export const CustomerFormPage = () => {
                                   {item.product_name}
                                 </p>
                                 <p className="text-gray-500">
-                                  x{item.quantity} @ $
-                                  {item.unit_price.toFixed(2)}
+                                  x{item.quantity} @{item.unit_price.toFixed(2)}
                                 </p>
                               </div>
                               <p className="font-medium">

@@ -17,6 +17,7 @@ export interface Product {
   updated_at: string;
   created_at_formatted: string;
   updated_at_formatted: string;
+  suggested_price: string | null;
   stock_alert_status?: StockAlertStatus;
   should_reorder?: boolean;
 }

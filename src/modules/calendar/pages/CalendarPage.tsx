@@ -146,7 +146,10 @@ export const CalendarPage = () => {
                         <div>
                           <p className="font-medium">{event.customer}</p>
                           <p className="text-sm text-gray-600">
-                            Compra estimada
+                            Compra estimada:
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {event.productName}
                           </p>
                         </div>
                         <Badge

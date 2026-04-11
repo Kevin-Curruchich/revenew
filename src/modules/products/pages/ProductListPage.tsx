@@ -77,6 +77,7 @@ export const ProductListPage = () => {
                 <TableRow>
                   <TableHead>SKU</TableHead>
                   <TableHead>Nombre</TableHead>
+                  <TableHead>Precio</TableHead>
                   <TableHead>Ganancia</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Estado</TableHead>
@@ -88,6 +89,7 @@ export const ProductListPage = () => {
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.sku}</TableCell>
                     <TableCell>{product.name}</TableCell>
+                    <TableCell>Q{product.suggested_price}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
                         {getEarningLabel(
