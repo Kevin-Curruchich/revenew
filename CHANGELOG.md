@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.3.1...v0.4.0) (2026-04-11)
+
+
+### Features
+
+* add suggested price to Product interface and display in ProductListPage ([cee0c12](https://github.com/Kevin-Curruchich/revenew/commit/cee0c123b06711cba5f831b9a02f8ad18e477171))
+
 ### [0.3.1](https://github.com/Kevin-Curruchich/revenew/compare/v0.3.0...v0.3.1) (2026-04-08)
 
 ## [0.3.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.2.4...v0.3.0) (2026-04-08)
