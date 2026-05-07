@@ -48,7 +48,7 @@ const saleFormSchema = z
       z.object({
         id: z.string().optional(),
         productId: z.string().min(1, "El producto es requerido"),
-        quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
+        quantity: z.number(),
         unitPrice: z
           .number()
           .min(0, "El precio debe ser mayor o igual a 0")
@@ -538,7 +538,8 @@ const ItemRow = ({
           <Input
             id={`items.${index}.quantity`}
             type="number"
-            min="1"
+            min="0.5"
+            step="0.5"
             {...register(`items.${index}.quantity`, {
               valueAsNumber: true,
             })}
