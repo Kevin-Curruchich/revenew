@@ -136,6 +136,7 @@ export const SalesListPage = () => {
                 <TableHead>Fecha</TableHead>
                 <TableHead>Productos</TableHead>
                 <TableHead>Total</TableHead>
+                <TableHead>Pago</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -143,7 +144,7 @@ export const SalesListPage = () => {
               {isLoading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center py-8 text-muted-foreground"
                   >
                     Cargando ventas...
@@ -152,7 +153,7 @@ export const SalesListPage = () => {
               ) : data?.data.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center py-8 text-muted-foreground"
                   >
                     No se encontraron ventas
@@ -192,6 +193,15 @@ export const SalesListPage = () => {
                     </TableCell>
                     <TableCell className="font-semibold">
                       {formatCurrency(sale.total)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          sale.is_payment_pending ? "secondary" : "default"
+                        }
+                      >
+                        {sale.is_payment_pending ? "Pendiente" : "Pagado"}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <Link to={`/sales/${sale.id}`}>

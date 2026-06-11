@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 
 import {
@@ -38,6 +38,7 @@ import { useProductsForSale } from "../../products/hooks/useProductsForSale";
 import type { ProductForSale } from "../../products/actions/get-products-for-sale";
 import { useCustomers } from "../../customers/hooks/useCustomers";
 import { formatCurrency } from "@/lib/formatters";
+import { Badge } from "@/components/ui/badge";
 
 // Zod validation schema
 const saleFormSchema = z
@@ -90,9 +91,15 @@ export const SaleFormPage = () => {
     isLoading,
     createSale,
     updateSale,
+    updateSalePaymentStatus,
     isCreating,
     isUpdating,
+    isUpdatingPaymentStatus,
   } = useSale(id);
+
+  const [paymentStatusDraft, setPaymentStatusDraft] = useState<boolean | null>(
+    null,
+  );
 
   const {
     control,
@@ -125,7 +132,10 @@ export const SaleFormPage = () => {
 
   // Always load default paginated products for sale
   const { data: defaultProductsData } = useProductsForSale({ limit: 50 });
-  const defaultProducts = defaultProductsData ?? [];
+  const defaultProducts = useMemo(
+    () => defaultProductsData ?? [],
+    [defaultProductsData],
+  );
 
   // Load customers for selection
   const { data: customersData } = useCustomers({ limit: 100 });
@@ -137,28 +147,38 @@ export const SaleFormPage = () => {
     name: "items",
   });
 
-  // Reset form when sale data is loaded in edit mode
   useEffect(() => {
-    if (sale && isEditing) {
-      reset({
-        customerId: sale.customer_id,
-        saleDate: sale.date,
-        items: sale.items.map((item) => {
-          const product = defaultProducts.find((p) => p.id === item.product_id);
-          const suggestedPrice =
-            product && Number(product.first_available_lot.suggested_unit_price);
-          return {
-            id: item.id,
-            productId: item.product_id,
-            quantity: item.quantity,
-            unitPrice: item.unit_price,
-            suggestedUnitPrice: suggestedPrice || undefined,
-            pricingExceptionReason: item.pricing_exception_reason ?? "",
-            subtotal: item.subtotal,
-          };
-        }),
-      });
+    if (!sale || !isEditing) {
+      return;
     }
+
+    setPaymentStatusDraft(null);
+  }, [sale?.id, sale?.is_payment_pending, isEditing]);
+
+  useEffect(() => {
+    if (!sale || !isEditing) {
+      return;
+    }
+
+    reset({
+      customerId: sale.customer_id,
+      saleDate: sale.date,
+      items: sale.items.map((item) => {
+        const product = defaultProducts.find((p) => p.id === item.product_id);
+        const suggestedPrice =
+          product && Number(product.first_available_lot.suggested_unit_price);
+
+        return {
+          id: item.id,
+          productId: item.product_id,
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+          suggestedUnitPrice: suggestedPrice || undefined,
+          pricingExceptionReason: item.pricing_exception_reason ?? "",
+          subtotal: item.subtotal,
+        };
+      }),
+    });
   }, [sale, isEditing, reset, defaultProducts]);
 
   const onSubmit = async (data: SaleFormData) => {
@@ -204,6 +224,27 @@ export const SaleFormPage = () => {
       .toFixed(2);
   };
 
+  const isPaymentPending = paymentStatusDraft ?? sale?.is_payment_pending ?? false;
+  const paymentStatusText = isPaymentPending ? "Pendiente" : "Pagado";
+  const paymentStatusVariant = isPaymentPending ? "secondary" : "default";
+
+  const handlePaymentStatusUpdate = async () => {
+    if (!id) {
+      return;
+    }
+
+    try {
+      await updateSalePaymentStatus({
+        saleId: id,
+        data: {
+          isPaymentPending,
+        },
+      });
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+    }
+  };
+
   if (isEditing && isLoading) {
     return <p>Cargando información de la venta...</p>;
   }
@@ -224,6 +265,12 @@ export const SaleFormPage = () => {
               ? "Actualiza la información de la venta"
               : "Registra una nueva venta"}
           </p>
+          {isEditing && sale && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-sm text-gray-600">Estado del pago:</span>
+              <Badge variant={paymentStatusVariant}>{paymentStatusText}</Badge>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -370,6 +417,42 @@ export const SaleFormPage = () => {
                       <p className="text-xs text-gray-500">
                         Se calcula automáticamente basado en el historial
                       </p>
+                    </div>
+                  )}
+
+                  {isEditing && sale && (
+                    <div className="pt-4 space-y-3 border-t">
+                      <div className="space-y-2">
+                        <Label htmlFor="paymentStatus">Estado del pago</Label>
+                        <Select
+                          value={isPaymentPending ? "pending" : "paid"}
+                          onValueChange={(value) =>
+                            setPaymentStatusDraft(value === "pending")
+                          }
+                        >
+                          <SelectTrigger id="paymentStatus">
+                            <SelectValue placeholder="Selecciona un estado" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pendiente</SelectItem>
+                            <SelectItem value="paid">Pagado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        disabled={
+                          isUpdatingPaymentStatus ||
+                          isPaymentPending === sale.is_payment_pending
+                        }
+                        onClick={handlePaymentStatusUpdate}
+                      >
+                        {isUpdatingPaymentStatus
+                          ? "Actualizando..."
+                          : "Actualizar estado del pago"}
+                      </Button>
                     </div>
                   )}
                 </div>

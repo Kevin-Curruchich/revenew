@@ -25,6 +25,7 @@ export interface Sale {
   user_id: string;
   date: string;
   total: number;
+  is_payment_pending: boolean;
   items: SaleItem[];
   created_at: string;
   updated_at: string;
