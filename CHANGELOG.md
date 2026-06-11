@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.6.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.5.0...v0.6.0) (2026-06-11)
+
+
+### Features
+
+* add payment status management to sales, including UI updates and API integration ([58d670d](https://github.com/Kevin-Curruchich/revenew/commit/58d670d0f804293befd3f08d3be224d7c1daa88d))
+
 ## [0.5.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.4.0...v0.5.0) (2026-05-07)
 
 
