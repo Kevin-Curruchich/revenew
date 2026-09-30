@@ -36,10 +36,5 @@ jobs:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
         run: yarn build
 
-      - name: Unit tests (optional until test setup exists)
-        run: |
-          if grep -q '"test"' package.json; then
-            yarn test --ci
-          else
-            echo "No test script found in package.json. Skipping tests."
-          fi
+      - name: Unit tests
+        run: yarn test

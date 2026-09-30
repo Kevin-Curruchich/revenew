@@ -161,6 +161,26 @@ export const appRouter = createBrowserRouter([
                 ),
               },
               {
+                path: "agent",
+                ...page(() =>
+                  import("@/modules/agent").then((m) => m.AgentPage),
+                ),
+                children: [
+                  {
+                    index: true,
+                    ...page(() =>
+                      import("@/modules/agent").then((m) => m.AgentHomePage),
+                    ),
+                  },
+                  {
+                    path: ":threadId",
+                    ...page(() =>
+                      import("@/modules/agent").then((m) => m.AgentThreadPage),
+                    ),
+                  },
+                ],
+              },
+              {
                 path: "calendar",
                 ...page(() =>
                   import("@/modules/calendar").then((m) => m.CalendarPage),
