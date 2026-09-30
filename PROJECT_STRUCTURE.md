@@ -27,6 +27,7 @@ src/
 ├── modules/
 │   ├── auth/ dashboard/ products/ purchases/
 │   ├── customers/ sales/ follow-up/ calendar/
+│   ├── agent/               # Chat con el agente de ventas (ver docs/agente-panel.md)
 │   └── <módulo>/
 │       ├── actions/         # Una función por endpoint (sin React)
 │       ├── domain/          # Tipos del dominio + helpers puros (labels, reglas)
@@ -77,6 +78,11 @@ src/
 - Acciones destructivas o irreversibles pasan por `<ConfirmDialog />`.
 - Montos siempre con `formatCurrency` (GTQ).
 
+### Tests
+
+- `yarn test` corre Vitest. Se testea la lógica pura (parsers, reducers,
+  construcción de payloads) junto al archivo: `archivo.test.ts`.
+
 ## 🗺️ Rutas
 
 | Ruta                                      | Página                              |
@@ -89,3 +95,4 @@ src/
 | `/sales`, `/sales/new`, `/sales/:id`      | Ventas (`/sales/new?customerId=`)   |
 | `/follow-up`                              | Seguimiento (`?filter=`)            |
 | `/calendar`                               | Calendario (`?date=YYYY-MM-DD`)     |
+| `/agent`, `/agent/:threadId`              | Asistente de ventas (chat)          |
