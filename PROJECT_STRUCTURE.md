@@ -1,198 +1,91 @@
 # Estructura del Proyecto Revenew
 
-## 📁 Organización por Módulos
+## 📁 Organización
 
-El proyecto está organizado por módulos funcionales bajo `src/modules/`:
+El código está organizado por **módulos de negocio** (feature folders). Cada
+módulo es dueño de sus tipos, llamadas a la API, hooks de datos y UI.
 
 ```
 src/
-├── modules/
-│   ├── auth/              # Autenticación
-│   │   ├── pages/
-│   │   │   └── LoginPage.tsx
-│   │   └── index.ts
-│   │
-│   ├── dashboard/         # Panel principal
-│   │   ├── pages/
-│   │   │   └── DashboardPage.tsx
-│   │   └── index.ts
-│   │
-│   ├── customers/         # Gestión de clientes
-│   │   ├── pages/
-│   │   │   ├── CustomerListPage.tsx
-│   │   │   └── CustomerFormPage.tsx
-│   │   └── index.ts
-│   │
-│   ├── sales/            # Gestión de ventas
-│   │   ├── pages/
-│   │   │   ├── SalesListPage.tsx
-│   │   │   └── SaleFormPage.tsx
-│   │   └── index.ts
-│   │
-│   ├── follow-up/        # Seguimiento de clientes
-│   │   ├── pages/
-│   │   │   └── FollowUpListPage.tsx
-│   │   └── index.ts
-│   │
-│   └── calendar/         # Vista de calendario
-│       ├── pages/
-│       │   └── CalendarPage.tsx
-│       └── index.ts
-│
+├── api/revenewApi.ts        # Cliente axios: token de Firebase + manejo de 401
 ├── components/
-│   ├── ui/               # Componentes de shadcn/ui
-│   └── layout/
-│       └── AppLayout.tsx # Layout principal con navegación
-│
-└── router/
-    └── app.router.tsx    # Configuración de rutas
+│   ├── ui/                  # Primitivos de shadcn/ui (no se editan a mano)
+│   ├── shared/              # Componentes reutilizables propios de la app
+│   │   ├── PageHeader, FormField, FormErrorAlert, StatusBadge
+│   │   ├── QueryStates (Loading/Error/Empty), Pagination, SearchInput
+│   │   └── ConfirmDialog
+│   └── layout/AppLayout.tsx # Header + navegación (desktop y móvil)
+├── hooks/
+│   └── useListSearchParams  # Filtros y paginación sincronizados con la URL
+├── lib/
+│   ├── query-client.ts      # QueryClient con defaults (retry, staleTime)
+│   ├── errors.ts            # getErrorMessage(): errores de API → texto para el usuario
+│   ├── dates.ts             # Fechas YYYY-MM-DD en zona horaria local
+│   ├── formatters.ts        # Moneda (GTQ), fechas largas, plurales
+│   ├── api-types.ts         # PaginatedResponse / PaginationParams
+│   └── firebase.ts, theme.ts, utils.ts
+├── modules/
+│   ├── auth/ dashboard/ products/ purchases/
+│   ├── customers/ sales/ follow-up/ calendar/
+│   └── <módulo>/
+│       ├── actions/         # Una función por endpoint (sin React)
+│       ├── domain/          # Tipos del dominio + helpers puros (labels, reglas)
+│       ├── hooks/           # useQuery / useMutation + query-keys.ts
+│       ├── components/      # Piezas de UI del módulo (formularios, tarjetas)
+│       ├── pages/           # Pantallas (solo orquestan hooks y componentes)
+│       └── index.ts         # API pública del módulo (páginas)
+└── router/                  # Rutas con lazy loading, 404 y error boundary
 ```
 
-## 🎯 Páginas Creadas
+## 🧭 Convenciones
 
-### 1. **Auth Module** (`/login`)
+### Datos del servidor (TanStack Query)
 
-- **LoginPage**: Página de inicio de sesión con formulario simple
+- Cada módulo define una **fábrica de query keys** (`productKeys`, `saleKeys`, ...).
+  Todas las keys de un módulo cuelgan de una raíz (`["products"]`), así una
+  sola invalidación refresca listas, detalle y sub-recursos.
+- Un hook por query y **un hook por mutación** (`useCreateSale`,
+  `useUpdateSale`, ...). Las mutaciones invalidan lo que afectan: una venta
+  refresca ventas, productos (stock), clientes, dashboard, seguimiento y calendario.
+- Al cerrar sesión se limpia la caché (`queryClient.clear()`).
 
-### 2. **Dashboard Module** (`/dashboard`)
+### Estado de cliente
 
-- **DashboardPage**: Panel principal con métricas clave:
-  - Total de clientes
-  - Ventas del mes
-  - Seguimiento pendiente
-  - Compras próximas (7 días)
-  - Últimas ventas
-  - Clientes prioritarios
+- **Zustand** solo para la sesión (`auth.store.ts`). Leer siempre con
+  selectores: `useAuthStore((s) => s.user)`.
+- Filtros y paginación de las listas viven en la **URL**
+  (`useListSearchParams`), no en `useState`.
 
-### 3. **Customers Module**
+### Formularios (react-hook-form + zod)
 
-- **CustomerListPage** (`/customers`): Lista de clientes con:
-  - Tabla con información completa
-  - Búsqueda de clientes
-  - Estados (Activo/Inactivo)
-  - Botón para crear nuevo cliente
-- **CustomerFormPage** (`/customers/new`, `/customers/:id`): Formulario para:
-  - Crear nuevo cliente
-  - Editar cliente existente
-  - Campos: nombre, empresa, email, teléfono, dirección, notas
+- El esquema zod y los mapeos `toFormValues` / `toPayload` viven junto al
+  formulario (`components/*-form-schema.ts`).
+- Patrón **"cargar y luego montar"**: la página espera los datos y monta el
+  formulario con `key={entidad.id}` y `defaultValues`. No se usa `reset()`
+  dentro de `useEffect`.
+- Las filas de arrays (`useFieldArray`) usan `useFormContext` en lugar de
+  recibir `control`, `register`, `errors`... por props.
+- Los errores de la API se muestran con `setError("root", ...)` +
+  `<FormErrorAlert />`.
 
-### 4. **Sales Module**
+### UI
 
-- **SalesListPage** (`/sales`): Lista de ventas con:
-  - Tabla con todas las ventas
-  - Filtros por fecha y cliente
-  - Vista de items por venta
-  - Fecha de próxima compra estimada
-- **SaleFormPage** (`/sales/new`, `/sales/:id`): Formulario para:
-  - Registrar nueva venta
-  - Editar venta existente
-  - Múltiples items por venta (SKU, cantidad, precio, subtotal)
-  - Selección de cliente
-  - Cálculo automático de total
-  - Campo de próxima compra estimada (calculado en backend)
+- Navegación con `<Button asChild><Link /></Button>` (nunca `<Link><Button/></Link>`,
+  que genera HTML inválido `<a><button>`).
+- Colores semánticos (`text-muted-foreground`, `text-destructive`...) para que
+  el modo oscuro funcione; evitar `text-gray-*`.
+- Acciones destructivas o irreversibles pasan por `<ConfirmDialog />`.
+- Montos siempre con `formatCurrency` (GTQ).
 
-### 5. **Follow-up Module** (`/follow-up`)
+## 🗺️ Rutas
 
-- **FollowUpListPage**: Lista de seguimiento con:
-  - Métricas: Atrasados, 7 días, 14 días, 30 días
-  - Filtros por período
-  - Estados: Atrasado, Urgente, Próximo, Normal
-  - Ordenado por fecha de próxima compra
-  - Acciones rápidas: Ver cliente, Registrar venta
-
-### 6. **Calendar Module** (`/calendar`)
-
-- **CalendarPage**: Vista de calendario con:
-  - Calendario visual interactivo
-  - Eventos de próximas compras estimadas
-  - Panel de eventos del día seleccionado
-  - Lista de próximos eventos
-  - Leyenda de colores
-
-## 🎨 Componentes UI (shadcn)
-
-Componentes instalados y utilizados:
-
-- `Button` - Botones de acción
-- `Card` - Contenedores de contenido
-- `Input` - Campos de texto
-- `Label` - Etiquetas de formularios
-- `Table` - Tablas de datos
-- `Badge` - Indicadores de estado
-- `Calendar` - Selector de fechas
-- `Select` - Listas desplegables
-- `Dialog` - Modales (preparado para uso futuro)
-- `Form` - Formularios (preparado para uso futuro)
-
-## 🛣️ Rutas Configuradas
-
-```typescript
-/ → Redirige a /dashboard
-/login → LoginPage (sin layout)
-
-// Rutas con AppLayout (navegación lateral)
-/dashboard → DashboardPage
-/customers → CustomerListPage
-/customers/new → CustomerFormPage (crear)
-/customers/:id → CustomerFormPage (editar)
-/sales → SalesListPage
-/sales/new → SaleFormPage (crear)
-/sales/:id → SaleFormPage (editar)
-/follow-up → FollowUpListPage
-/calendar → CalendarPage
-```
-
-## 🧩 AppLayout
-
-Componente de layout que envuelve todas las páginas autenticadas:
-
-- **Header**: Logo, nombre de usuario, botón de cerrar sesión
-- **Sidebar**: Navegación lateral con iconos
-- **Main**: Contenido principal de cada página
-
-Navegación disponible:
-
-- 📊 Dashboard
-- 👥 Clientes
-- 💰 Ventas
-- 📋 Seguimiento
-- 📅 Calendario
-
-## 📊 Mock Data
-
-Todas las páginas contienen datos de prueba (mock data) para visualización:
-
-- Clientes de ejemplo
-- Ventas de ejemplo
-- Eventos de calendario
-- Métricas del dashboard
-
-## 🚀 Próximos Pasos
-
-Para agregar funcionalidad real:
-
-1. Implementar servicios/API para comunicación con backend
-2. Agregar gestión de estado (Context API, Zustand, Redux, etc.)
-3. Implementar validación de formularios (React Hook Form + Zod)
-4. Agregar autenticación real
-5. Conectar con backend para cálculo de próxima compra estimada
-6. Implementar filtros y búsquedas funcionales
-7. Agregar paginación en listas
-8. Implementar notificaciones/toasts
-
-## 🏗️ Cómo Extender
-
-### Agregar un nuevo módulo:
-
-1. Crear carpeta en `src/modules/nuevo-modulo/`
-2. Crear subcarpeta `pages/`
-3. Crear componentes de página
-4. Crear `index.ts` para exports
-5. Agregar ruta en `app.router.tsx`
-6. Agregar item en navegación de `AppLayout.tsx`
-
-### Agregar una nueva página a un módulo existente:
-
-1. Crear componente en `src/modules/[modulo]/pages/`
-2. Exportar en `index.ts` del módulo
-3. Agregar ruta en `app.router.tsx`
+| Ruta                                      | Página                              |
+| ----------------------------------------- | ----------------------------------- |
+| `/login`                                  | Inicio de sesión                    |
+| `/dashboard`                              | Métricas y clientes prioritarios    |
+| `/products`, `/products/new`, `/products/:id`    | Inventario                   |
+| `/purchases`, `/purchases/new`, `/purchases/:id` | Compras (borrador → confirmada) |
+| `/customers`, `/customers/new`, `/customers/:id` | Clientes                     |
+| `/sales`, `/sales/new`, `/sales/:id`      | Ventas (`/sales/new?customerId=`)   |
+| `/follow-up`                              | Seguimiento (`?filter=`)            |
+| `/calendar`                               | Calendario (`?date=YYYY-MM-DD`)     |
