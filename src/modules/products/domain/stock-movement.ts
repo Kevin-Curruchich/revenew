@@ -2,13 +2,13 @@ export type StockMovementType =
   | "purchase"
   | "sale"
   | "adjustment"
-  | "initial_stock"
-  | string;
+  | "initial_stock";
 
 export interface StockMovement {
   id: string;
   product_id: string;
-  movement_type: StockMovementType;
+  // The API may add new movement types; keep unknown values displayable.
+  movement_type: StockMovementType | (string & {});
   quantity_change: number;
   stock_before?: number;
   stock_after?: number;

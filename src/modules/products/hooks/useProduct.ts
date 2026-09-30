@@ -1,55 +1,34 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getProduct } from "../actions/get-product";
-import {
-  createProduct,
-  type CreateProductData,
-} from "../actions/create-product";
-import {
-  updateProduct,
-  type UpdateProductData,
-} from "../actions/update-product";
-import type { Product } from "../domain/product";
+import { createProduct, type ProductPayload } from "../actions/create-product";
+import { updateProduct } from "../actions/update-product";
+import { productKeys } from "./query-keys";
 
-export const useProduct = (productId?: string) => {
-  const queryClient = useQueryClient();
-
-  const query = useQuery<Product>({
-    queryKey: ["product", productId],
+export const useProduct = (productId: string | undefined) => {
+  return useQuery({
+    queryKey: productKeys.detail(productId ?? ""),
     queryFn: () => getProduct(productId!),
     enabled: !!productId,
   });
+};
 
-  const createMutation = useMutation({
-    mutationFn: (data: CreateProductData) => createProduct(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
+export const useCreateProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createProduct,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: productKeys.all }),
   });
+};
 
-  const updateMutation = useMutation({
-    mutationFn: ({
-      productId,
-      data,
-    }: {
-      productId: string;
-      data: UpdateProductData;
-    }) => updateProduct(productId, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["product", variables.productId],
-      });
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: ProductPayload }) =>
+      updateProduct(id, data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: productKeys.all }),
   });
-
-  return {
-    data: query.data,
-    isLoading: query.isLoading,
-    isError: query.isError,
-    error: query.error,
-    createProduct: createMutation.mutateAsync,
-    updateProduct: updateMutation.mutateAsync,
-    isCreating: createMutation.isPending,
-    isUpdating: updateMutation.isPending,
-  };
 };

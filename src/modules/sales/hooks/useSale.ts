@@ -1,97 +1,75 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getSale } from "../actions/get-sale";
-import { createSale, type CreateSaleData } from "../actions/create-sale";
-import { updateSale, type UpdateSaleData } from "../actions/update-sale";
-import type { SalesResponse } from "../actions/get-sales";
 import {
-  updateSalePaymentStatus,
-  type UpdateSalePaymentStatusData,
-} from "../actions/update-sale-payment-status";
-import type { Sale } from "../domain/sale";
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
+import { calendarKeys } from "@/modules/calendar/hooks/useCalendarEvents";
+import { customerKeys } from "@/modules/customers/hooks/query-keys";
+import { dashboardKeys } from "@/modules/dashboard/hooks/useDashboardSummary";
+import { followUpKeys } from "@/modules/follow-up/hooks/useFollowUps";
+import { productKeys } from "@/modules/products/hooks/query-keys";
+import { createSale, type SalePayload } from "../actions/create-sale";
+import { getSale } from "../actions/get-sale";
+import { updateSale } from "../actions/update-sale";
+import { updateSalePaymentStatus } from "../actions/update-sale-payment-status";
+import { saleKeys } from "./query-keys";
 
-export const useSale = (saleId?: string) => {
-  const queryClient = useQueryClient();
+/**
+ * A sale moves stock and feeds the purchase predictions, so everything
+ * derived from sales has to be refreshed.
+ */
+const invalidateSaleDependents = (queryClient: QueryClient) =>
+  Promise.all(
+    [
+      saleKeys.all,
+      productKeys.all,
+      customerKeys.all,
+      dashboardKeys.all,
+      followUpKeys.all,
+      calendarKeys.all,
+    ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+  );
 
-  const query = useQuery<Sale>({
-    queryKey: ["sale", saleId],
+export const useSale = (saleId: string | undefined) => {
+  return useQuery({
+    queryKey: saleKeys.detail(saleId ?? ""),
     queryFn: () => getSale(saleId!),
     enabled: !!saleId,
   });
+};
 
-  const createMutation = useMutation({
-    mutationFn: (data: CreateSaleData) => createSale(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sales"] });
-    },
+export const useCreateSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createSale,
+    onSuccess: () => invalidateSaleDependents(queryClient),
   });
+};
 
-  const updateMutation = useMutation({
-    mutationFn: ({ saleId, data }: { saleId: string; data: UpdateSaleData }) =>
-      updateSale(saleId, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["sale", variables.saleId] });
-      queryClient.invalidateQueries({ queryKey: ["sales"] });
-    },
+export const useUpdateSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: SalePayload }) =>
+      updateSale(id, data),
+    onSuccess: () => invalidateSaleDependents(queryClient),
   });
+};
 
-  const updatePaymentStatusMutation = useMutation({
+export const useUpdateSalePaymentStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: ({
-      saleId,
-      data,
+      id,
+      isPaymentPending,
     }: {
-      saleId: string;
-      data: UpdateSalePaymentStatusData;
-    }) => updateSalePaymentStatus(saleId, data),
-    onSuccess: (_, variables) => {
-      queryClient.setQueryData<Sale>(
-        ["sale", variables.saleId],
-        (currentSale) =>
-          currentSale
-            ? {
-                ...currentSale,
-                is_payment_pending: variables.data.isPaymentPending,
-              }
-            : currentSale,
-      );
-
-      queryClient.setQueriesData<SalesResponse>(
-        { queryKey: ["sales"] },
-        (currentSales) =>
-          currentSales
-            ? {
-                ...currentSales,
-                data: currentSales.data.map((sale) =>
-                  sale.id === variables.saleId
-                    ? {
-                        ...sale,
-                        is_payment_pending: variables.data.isPaymentPending,
-                      }
-                    : sale,
-                ),
-              }
-            : currentSales,
-      );
-
-      return Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["sale", variables.saleId] }),
-        queryClient.invalidateQueries({
-          queryKey: ["sales"],
-          refetchType: "all",
-        }),
-      ]);
-    },
+      id: string;
+      isPaymentPending: boolean;
+    }) => updateSalePaymentStatus(id, { isPaymentPending }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: saleKeys.all }),
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.all }),
+      ]),
   });
-
-  return {
-    data: query.data,
-    isLoading: query.isLoading,
-    isError: query.isError,
-    error: query.error,
-    createSale: createMutation.mutateAsync,
-    updateSale: updateMutation.mutateAsync,
-    updateSalePaymentStatus: updatePaymentStatusMutation.mutateAsync,
-    isCreating: createMutation.isPending,
-    isUpdating: updateMutation.isPending,
-    isUpdatingPaymentStatus: updatePaymentStatusMutation.isPending,
-  };
 };

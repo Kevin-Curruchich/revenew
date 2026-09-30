@@ -1,40 +1,22 @@
 import { revenewApi } from "@/api/revenewApi";
+import type { PaginationParams } from "@/lib/api-types";
+import type { ProductForSale } from "../domain/product";
 
-export interface ProductLot {
-  purchase_item_id: string;
-  purchase_id: string;
-  purchase_date: string;
-  unit_cost: string;
-  remaining_quantity: number;
-  suggested_unit_price: string;
-}
-
-export interface ProductForSale {
-  id: string;
-  sku: string;
-  name: string;
-  stock: number;
-  earning_mode: "fee" | "percent";
-  earning_percent: string;
-  earning_fee_amount: string;
-  status: "active" | "inactive";
-  first_available_lot: ProductLot;
-  has_more_lots: boolean;
-}
-
-export interface GetProductsForSaleParams {
-  limit?: number;
-  offset?: number;
+export interface GetProductsForSaleParams extends PaginationParams {
   search?: string;
 }
 
 export const getProductsForSale = async (
-  params: GetProductsForSaleParams,
+  params: GetProductsForSaleParams = {},
 ): Promise<ProductForSale[]> => {
   const response = await revenewApi.get<ProductForSale[]>(
     "/products/for-sale",
     {
-      params,
+      params: {
+        offset: params.offset ?? 0,
+        limit: params.limit ?? 50,
+        search: params.search || undefined,
+      },
     },
   );
 

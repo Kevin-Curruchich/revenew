@@ -21,7 +21,7 @@ export const LoadingSpinner = ({
     <div className="flex flex-col items-center justify-center gap-3">
       <div
         className={cn(
-          "animate-spin rounded-full border-gray-300 border-t-primary",
+          "animate-spin rounded-full border-muted border-t-primary",
           sizeClasses[size],
           className,
         )}
@@ -35,7 +35,7 @@ export const LoadingSpinner = ({
 
 export const FullPageLoader = ({ label }: { label?: string }) => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <LoadingSpinner size="lg" label={label} />
     </div>
   );

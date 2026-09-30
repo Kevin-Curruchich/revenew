@@ -1,17 +1,10 @@
 import { revenewApi } from "@/api/revenewApi";
+import type { PaginatedResponse, PaginationParams } from "@/lib/api-types";
 import type { StockMovement } from "../domain/stock-movement";
 
-export interface GetStockMovementsParams {
-  limit?: number;
-  offset?: number;
-}
+export type GetStockMovementsParams = PaginationParams;
 
-export interface StockMovementsResponse {
-  data: StockMovement[];
-  meta: {
-    total: number;
-  };
-}
+export type StockMovementsResponse = PaginatedResponse<StockMovement>;
 
 export const getStockMovements = async (
   productId: string,
@@ -26,12 +19,11 @@ export const getStockMovements = async (
     },
   });
 
+  // Older API versions return a plain array.
   if (Array.isArray(response.data)) {
     return {
       data: response.data,
-      meta: {
-        total: response.data.length,
-      },
+      meta: { total: response.data.length },
     };
   }
 

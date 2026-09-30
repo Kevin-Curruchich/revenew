@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router";
-import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut } from "lucide-react";
-import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { Link, NavLink, Outlet } from "react-router";
+import { LogOut, Menu, X } from "lucide-react";
+
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/modules/auth";
 
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: "📊" },
@@ -14,115 +16,100 @@ const navItems = [
   { path: "/calendar", label: "Calendario", icon: "📅" },
 ];
 
+interface NavLinksProps {
+  onNavigate?: () => void;
+  className?: string;
+  itemClassName?: string;
+}
+
+const NavLinks = ({ onNavigate, className, itemClassName }: NavLinksProps) => (
+  <nav className={cn("flex flex-col gap-2 p-4", className)}>
+    {navItems.map((item) => (
+      <NavLink
+        key={item.path}
+        to={item.path}
+        onClick={onNavigate}
+        className={({ isActive }) =>
+          cn(
+            buttonVariants({ variant: isActive ? "default" : "ghost" }),
+            "w-full justify-start",
+            itemClassName,
+          )
+        }
+      >
+        <span aria-hidden="true">{item.icon}</span>
+        {item.label}
+      </NavLink>
+    ))}
+  </nav>
+);
+
 export const AppLayout = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="bg-card/95 border-b border-border sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-card/85">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Link to="/dashboard">
-                <img src="/logo.svg" alt="Revenew" className="h-5 w-auto" />
-              </Link>
-            </div>
+      <header className="sticky top-0 z-50 h-(--header-height) border-b border-border bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/85">
+        <div className="container mx-auto flex h-full items-center justify-between px-4">
+          <Link to="/dashboard">
+            <img src="/logo.svg" alt="Revenew" className="h-5 w-auto" />
+          </Link>
 
-            {/* Mobile Menu Toggle */}
-            <div className="md:hidden">
-              <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
-                {isMobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </Button>
-            </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+            aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={isMobileMenuOpen}
+          >
+            {isMobileMenuOpen ? (
+              <X className="size-6" />
+            ) : (
+              <Menu className="size-6" />
+            )}
+          </Button>
 
-            <div className="hidden md:flex items-center gap-4">
-              {user && (
-                <span className="text-sm text-muted-foreground">
-                  {user.display_name}
-                </span>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  await logout();
-                  navigate("/login");
-                }}
-              >
-                <LogOut className="h-4 w-4 mr-1" />
-                Cerrar Sesión
-              </Button>
-            </div>
+          <div className="hidden items-center gap-4 md:flex">
+            {user?.display_name ? (
+              <span className="text-sm text-muted-foreground">
+                {user.display_name}
+              </span>
+            ) : null}
+            {/* The auth guard redirects to /login once the session ends. */}
+            <Button variant="outline" size="sm" onClick={logout}>
+              <LogOut />
+              Cerrar Sesión
+            </Button>
           </div>
         </div>
       </header>
 
       <div className="flex flex-col md:flex-row">
-        {/* Mobile Navigation Overlay */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 top-[73px] z-40 bg-card border-t border-border overflow-y-auto">
-            <nav className="p-4 space-y-2">
-              {navItems.map((item) => {
-                const isActive = location.pathname.startsWith(item.path);
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={closeMobileMenu}
-                    className="block"
-                  >
-                    <Button
-                      variant={isActive ? "default" : "ghost"}
-                      className="w-full justify-start text-lg py-6"
-                    >
-                      <span className="mr-3 text-2xl">{item.icon}</span>
-                      {item.label}
-                    </Button>
-                  </Link>
-                );
-              })}
-            </nav>
+        {isMobileMenuOpen ? (
+          <div className="fixed inset-0 top-(--header-height) z-40 overflow-y-auto bg-card md:hidden">
+            <NavLinks
+              onNavigate={closeMobileMenu}
+              itemClassName="h-auto py-4 text-lg"
+            />
+            <div className="border-t border-border p-4">
+              <Button variant="outline" className="w-full" onClick={logout}>
+                <LogOut />
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
-        )}
+        ) : null}
 
-        {/* Desktop Sidebar */}
-        <aside className="hidden md:block w-64 bg-card border-r border-border min-h-[calc(100vh-73px)] sticky top-[73px]">
-          <nav className="p-4 space-y-2">
-            {navItems.map((item) => {
-              const isActive = location.pathname.startsWith(item.path);
-              return (
-                <Link key={item.path} to={item.path} className="block">
-                  <Button
-                    variant={isActive ? "default" : "ghost"}
-                    className="w-full justify-start"
-                  >
-                    <span className="mr-2">{item.icon}</span>
-                    {item.label}
-                  </Button>
-                </Link>
-              );
-            })}
-          </nav>
+        <aside className="sticky top-(--header-height) hidden min-h-[calc(100vh-var(--header-height))] w-64 self-start border-r border-border bg-card md:block">
+          <NavLinks />
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8 w-full overflow-x-hidden">
+        <main className="w-full flex-1 overflow-x-hidden p-4 md:p-8">
           <div className="container mx-auto max-w-7xl">
             <Outlet />
           </div>

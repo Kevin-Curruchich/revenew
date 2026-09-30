@@ -1,13 +1,7 @@
 import { revenewApi } from "@/api/revenewApi";
-import type { AuthMeResponse } from "../domain/types";
+import type { User } from "../domain/user";
 
-export const getUserProfile = async () => {
-  try {
-    const response = await revenewApi.get<AuthMeResponse>("/auth/me");
-    const user = response.data;
-
-    return user;
-  } catch {
-    return null;
-  }
+export const getUserProfile = async (): Promise<User> => {
+  const response = await revenewApi.get<User>("/auth/me");
+  return response.data;
 };

@@ -2,22 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getStockMovements,
   type GetStockMovementsParams,
-  type StockMovementsResponse,
 } from "../actions/get-stock-movements";
+import { productKeys } from "./query-keys";
 
 export const useProductStockMovements = (
-  productId?: string,
+  productId: string | undefined,
   params: GetStockMovementsParams = {},
 ) => {
-  return useQuery<StockMovementsResponse>({
-    queryKey: [
-      "product-stock-movements",
-      productId,
-      params.offset ?? 0,
-      params.limit ?? 20,
-    ],
+  return useQuery({
+    queryKey: productKeys.stockMovements(productId ?? "", params),
     queryFn: () => getStockMovements(productId!, params),
     enabled: !!productId,
-    staleTime: 60 * 1000,
   });
 };

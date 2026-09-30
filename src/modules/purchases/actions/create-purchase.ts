@@ -7,14 +7,14 @@ export interface PurchaseItemPayload {
   unitCost: number;
 }
 
-export interface CreatePurchaseData {
+export interface PurchasePayload {
   supplierName: string;
   date: string;
   items: PurchaseItemPayload[];
 }
 
 export const createPurchase = async (
-  data: CreatePurchaseData,
+  data: PurchasePayload,
 ): Promise<Purchase> => {
   const response = await revenewApi.post<Purchase>("/purchases", data);
   return response.data;

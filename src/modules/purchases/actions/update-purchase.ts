@@ -1,12 +1,10 @@
 import { revenewApi } from "@/api/revenewApi";
 import type { Purchase } from "../domain/purchase";
-import type { CreatePurchaseData } from "./create-purchase";
-
-export type UpdatePurchaseData = CreatePurchaseData;
+import type { PurchasePayload } from "./create-purchase";
 
 export const updatePurchase = async (
   purchaseId: string,
-  data: UpdatePurchaseData,
+  data: PurchasePayload,
 ): Promise<Purchase> => {
   const response = await revenewApi.put<Purchase>(
     `/purchases/${purchaseId}`,

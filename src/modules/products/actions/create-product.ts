@@ -5,7 +5,7 @@ import type {
   ProductStatus,
 } from "../domain/product";
 
-export interface CreateProductData {
+export interface ProductPayload {
   sku: string;
   name: string;
   description: string;
@@ -17,9 +17,7 @@ export interface CreateProductData {
   status: ProductStatus;
 }
 
-export const createProduct = async (
-  data: CreateProductData,
-): Promise<Product> => {
+export const createProduct = async (data: ProductPayload): Promise<Product> => {
   const response = await revenewApi.post<Product>("/products", data);
   return response.data;
 };
