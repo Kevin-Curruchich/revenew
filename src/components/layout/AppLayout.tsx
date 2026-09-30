@@ -8,6 +8,7 @@ import { useAuthStore } from "@/modules/auth";
 
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: "📊" },
+  { path: "/agent", label: "Asistente", icon: "🤖" },
   { path: "/products", label: "Productos", icon: "📦" },
   { path: "/purchases", label: "Compras", icon: "🛒" },
   { path: "/customers", label: "Clientes", icon: "👥" },
