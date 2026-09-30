@@ -1,4 +1,5 @@
-// Sale domain interfaces updated to match API contract
+import type { StatusBadgeInfo } from "@/components/shared/StatusBadge";
+import type { ProductEarningMode } from "@/modules/products/domain/product";
 
 export interface SaleItem {
   id: string;
@@ -14,7 +15,7 @@ export interface SaleItem {
   gross_profit_total?: number;
   is_price_overridden?: boolean;
   pricing_exception_reason?: string | null;
-  product_earning_mode?: "percent" | "fee" | string;
+  product_earning_mode?: ProductEarningMode;
   product_earning_percent?: number;
   product_earning_fee_amount?: number;
 }
@@ -37,3 +38,10 @@ export interface Sale {
   customer_company: string | null;
   customer_email: string | null;
 }
+
+export const getPaymentStatusBadge = (
+  isPaymentPending: boolean,
+): StatusBadgeInfo =>
+  isPaymentPending
+    ? { label: "Pendiente", variant: "secondary" }
+    : { label: "Pagado", variant: "default" };

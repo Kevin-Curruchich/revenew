@@ -1,99 +1,173 @@
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter, Navigate, type RouteObject } from "react-router";
+
 import { AppLayout } from "@/components/layout/AppLayout";
-import { AuthGuard, LoginGuard } from "@/modules/auth/components/AuthGuard";
+import { FullPageLoader } from "@/components/ui/loading-spinner";
+import { AuthGuard, LoginGuard } from "@/modules/auth";
+import { NotFoundPage, RouteErrorPage } from "./RouteErrorPage";
 
-// Auth
-import { LoginPage } from "@/modules/auth/pages/LoginPage";
+/**
+ * Pages are code-split: each module is only downloaded the first time the
+ * user navigates to it.
+ */
+const page = (load: () => Promise<RouteObject["Component"]>) => ({
+  lazy: async () => ({ Component: await load() }),
+});
 
-// Dashboard
-import { DashboardPage } from "@/modules/dashboard/pages/DashboardPage";
-
-// Products
-import { ProductListPage } from "@/modules/products/pages/ProductListPage";
-import { ProductFormPage } from "@/modules/products/pages/ProductFormPage";
-
-// Customers
-import { CustomerListPage } from "@/modules/customers/pages/CustomerListPage";
-import { CustomerFormPage } from "@/modules/customers/pages/CustomerFormPage";
-
-// Sales
-import { SalesListPage } from "@/modules/sales/pages/SalesListPage";
-import { SaleFormPage } from "@/modules/sales/pages/SaleFormPage";
-
-// Purchases
-import { PurchasesListPage } from "@/modules/purchases/pages/PurchasesListPage";
-import { PurchaseFormPage } from "@/modules/purchases/pages/PurchaseFormPage";
-
-// Follow-up
-import { FollowUpListPage } from "@/modules/follow-up/pages/FollowUpListPage";
-
-// Calendar
-import { CalendarPage } from "@/modules/calendar/pages/CalendarPage";
-
-export const appRoute = createBrowserRouter([
+export const appRouter = createBrowserRouter([
   {
-    path: "/login",
-    element: <LoginGuard />,
+    errorElement: <RouteErrorPage />,
+    hydrateFallbackElement: <FullPageLoader />,
     children: [
       {
-        index: true,
-        element: <LoginPage />,
-      },
-    ],
-  },
-  {
-    path: "/",
-    element: <Navigate to="/dashboard" replace />,
-  },
-  {
-    element: <AuthGuard />,
-    children: [
-      {
-        element: <AppLayout />,
+        path: "/login",
+        element: <LoginGuard />,
         children: [
           {
-            path: "dashboard",
-            element: <DashboardPage />,
+            index: true,
+            ...page(() =>
+              import("@/modules/auth/pages/LoginPage").then((m) => m.LoginPage),
+            ),
           },
+        ],
+      },
+      {
+        element: <AuthGuard />,
+        children: [
           {
-            path: "products",
+            element: <AppLayout />,
+            errorElement: <RouteErrorPage />,
             children: [
-              { index: true, element: <ProductListPage /> },
-              { path: "new", element: <ProductFormPage /> },
-              { path: ":id", element: <ProductFormPage /> },
+              { index: true, element: <Navigate to="/dashboard" replace /> },
+              {
+                path: "dashboard",
+                ...page(() =>
+                  import("@/modules/dashboard").then((m) => m.DashboardPage),
+                ),
+              },
+              {
+                path: "products",
+                children: [
+                  {
+                    index: true,
+                    ...page(() =>
+                      import("@/modules/products").then(
+                        (m) => m.ProductListPage,
+                      ),
+                    ),
+                  },
+                  {
+                    path: "new",
+                    ...page(() =>
+                      import("@/modules/products").then(
+                        (m) => m.ProductFormPage,
+                      ),
+                    ),
+                  },
+                  {
+                    path: ":id",
+                    ...page(() =>
+                      import("@/modules/products").then(
+                        (m) => m.ProductFormPage,
+                      ),
+                    ),
+                  },
+                ],
+              },
+              {
+                path: "customers",
+                children: [
+                  {
+                    index: true,
+                    ...page(() =>
+                      import("@/modules/customers").then(
+                        (m) => m.CustomerListPage,
+                      ),
+                    ),
+                  },
+                  {
+                    path: "new",
+                    ...page(() =>
+                      import("@/modules/customers").then(
+                        (m) => m.CustomerFormPage,
+                      ),
+                    ),
+                  },
+                  {
+                    path: ":id",
+                    ...page(() =>
+                      import("@/modules/customers").then(
+                        (m) => m.CustomerFormPage,
+                      ),
+                    ),
+                  },
+                ],
+              },
+              {
+                path: "sales",
+                children: [
+                  {
+                    index: true,
+                    ...page(() =>
+                      import("@/modules/sales").then((m) => m.SalesListPage),
+                    ),
+                  },
+                  {
+                    path: "new",
+                    ...page(() =>
+                      import("@/modules/sales").then((m) => m.SaleFormPage),
+                    ),
+                  },
+                  {
+                    path: ":id",
+                    ...page(() =>
+                      import("@/modules/sales").then((m) => m.SaleFormPage),
+                    ),
+                  },
+                ],
+              },
+              {
+                path: "purchases",
+                children: [
+                  {
+                    index: true,
+                    ...page(() =>
+                      import("@/modules/purchases").then(
+                        (m) => m.PurchasesListPage,
+                      ),
+                    ),
+                  },
+                  {
+                    path: "new",
+                    ...page(() =>
+                      import("@/modules/purchases").then(
+                        (m) => m.PurchaseFormPage,
+                      ),
+                    ),
+                  },
+                  {
+                    path: ":id",
+                    ...page(() =>
+                      import("@/modules/purchases").then(
+                        (m) => m.PurchaseFormPage,
+                      ),
+                    ),
+                  },
+                ],
+              },
+              {
+                path: "follow-up",
+                ...page(() =>
+                  import("@/modules/follow-up").then((m) => m.FollowUpListPage),
+                ),
+              },
+              {
+                path: "calendar",
+                ...page(() =>
+                  import("@/modules/calendar").then((m) => m.CalendarPage),
+                ),
+              },
+              { path: "*", element: <NotFoundPage /> },
             ],
-          },
-          {
-            path: "customers",
-            children: [
-              { index: true, element: <CustomerListPage /> },
-              { path: "new", element: <CustomerFormPage /> },
-              { path: ":id", element: <CustomerFormPage /> },
-            ],
-          },
-          {
-            path: "sales",
-            children: [
-              { index: true, element: <SalesListPage /> },
-              { path: "new", element: <SaleFormPage /> },
-              { path: ":id", element: <SaleFormPage /> },
-            ],
-          },
-          {
-            path: "purchases",
-            children: [
-              { index: true, element: <PurchasesListPage /> },
-              { path: "new", element: <PurchaseFormPage /> },
-              { path: ":id", element: <PurchaseFormPage /> },
-            ],
-          },
-          {
-            path: "follow-up",
-            element: <FollowUpListPage />,
-          },
-          {
-            path: "calendar",
-            element: <CalendarPage />,
           },
         ],
       },

@@ -1,24 +1,29 @@
-import { Navigate, Outlet } from "react-router";
-import { useAuthStore } from "..";
-import { FullPageLoader } from "@/components/ui/loading-spinner";
+import { Navigate, Outlet, useLocation, type Location } from "react-router";
+import { useAuthStore } from "../store/auth.store";
 
+/** Only lets authenticated users through; everyone else goes to /login. */
 export const AuthGuard = () => {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const isAuthenticated = useAuthStore((state) => state.user !== null);
+  const location = useLocation();
 
-  if (isLoading) {
-    return <FullPageLoader label="Verificando autenticación..." />;
+  if (!isAuthenticated) {
+    // Remember where the user was going so we can send them back after login.
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
+  return <Outlet />;
 };
 
-// Prevent authenticated users from accessing login page
+/** Prevents authenticated users from seeing the login page. */
 export const LoginGuard = () => {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const isAuthenticated = useAuthStore((state) => state.user !== null);
+  const location = useLocation();
 
-  if (isLoading) {
-    return <FullPageLoader label="Iniciando..." />;
+  if (isAuthenticated) {
+    const from = (location.state as { from?: Location } | null)?.from;
+    const redirectTo = from ? `${from.pathname}${from.search}` : "/dashboard";
+    return <Navigate to={redirectTo} replace />;
   }
 
-  return isAuthenticated() ? <Navigate to="/dashboard" replace /> : <Outlet />;
+  return <Outlet />;
 };

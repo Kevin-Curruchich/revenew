@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useTransition, type FormEvent } from "react";
 import {
   Card,
   CardContent,
@@ -10,32 +9,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "../hooks/useAuth";
+import { FormErrorAlert } from "@/components/shared/FormErrorAlert";
+import { useAuthStore } from "../store/auth.store";
 
 export const LoginPage = () => {
-  const { login, error, clearError } = useAuth();
-  const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
+  const error = useAuthStore((state) => state.error);
+  const [isSubmitting, startTransition] = useTransition();
 
-  // Local loading state — separate from Zustand isLoading (which is for Firebase init only)
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    clearError();
-    setIsSubmitting(true);
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-
-    try {
-      await login(email, password);
-      navigate("/dashboard");
-    } catch {
-      // error is already set in the store
-    } finally {
-      setIsSubmitting(false);
-    }
+    // On success the auth store updates and <LoginGuard /> redirects.
+    startTransition(() => login(email, password));
   };
 
   return (
@@ -61,6 +50,7 @@ export const LoginPage = () => {
                 id="email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 placeholder="tu@email.com"
                 required
               />
@@ -71,11 +61,12 @@ export const LoginPage = () => {
                 id="password"
                 name="password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="••••••••"
                 required
               />
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            <FormErrorAlert message={error} />
             <Button className="w-full" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Iniciando..." : "Iniciar Sesión"}
             </Button>

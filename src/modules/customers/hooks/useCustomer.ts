@@ -1,60 +1,37 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCustomer } from "../actions/get-customer";
 import {
   createCustomer,
-  type CreateCustomerData,
+  type CustomerPayload,
 } from "../actions/create-customer";
-import {
-  updateCustomer,
-  type UpdateCustomerData,
-} from "../actions/update-customer";
-import type { Customer } from "../domain/customer";
+import { updateCustomer } from "../actions/update-customer";
+import { customerKeys } from "./query-keys";
 
-export const useCustomer = (id?: string) => {
+export const useCustomer = (customerId: string | undefined) => {
+  return useQuery({
+    queryKey: customerKeys.detail(customerId ?? ""),
+    queryFn: () => getCustomer(customerId!),
+    enabled: !!customerId,
+  });
+};
+
+export const useCreateCustomer = () => {
   const queryClient = useQueryClient();
 
-  // Query
-  const query = useQuery<Customer>({
-    queryKey: ["customer", id],
-    queryFn: () => getCustomer(id!),
-    enabled: !!id,
+  return useMutation({
+    mutationFn: createCustomer,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: customerKeys.lists() }),
   });
+};
 
-  // Create mutation
-  const createMutation = useMutation({
-    mutationFn: (data: CreateCustomerData) => createCustomer(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-    },
+export const useUpdateCustomer = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CustomerPayload }) =>
+      updateCustomer(id, data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: customerKeys.all }),
   });
-
-  // Update mutation
-  const updateMutation = useMutation({
-    mutationFn: ({
-      customerId,
-      data,
-    }: {
-      customerId: string;
-      data: UpdateCustomerData;
-    }) => updateCustomer(customerId, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["customer", variables.customerId],
-      });
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-    },
-  });
-
-  return {
-    // Query data
-    customer: query.data,
-    isLoading: query.isLoading,
-    isError: query.isError,
-    error: query.error,
-    // Mutations
-    createCustomer: createMutation.mutateAsync,
-    updateCustomer: updateMutation.mutateAsync,
-    isCreating: createMutation.isPending,
-    isUpdating: updateMutation.isPending,
-  };
 };

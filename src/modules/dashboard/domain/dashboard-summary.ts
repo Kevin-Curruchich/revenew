@@ -1,11 +1,10 @@
-import type { FollowUpItem } from "@/modules/follow-up/domain/follow-up";
+import type {
+  FollowUpItem,
+  FollowUpStatus,
+} from "@/modules/follow-up/domain/follow-up";
 import type { Sale } from "@/modules/sales/domain/sale";
 
-export type PriorityCustomerStatus =
-  | "overdue"
-  | "urgent"
-  | "upcoming"
-  | "normal";
+export type PriorityCustomerStatus = FollowUpStatus;
 
 export interface PriorityCustomer {
   customer_id: string;

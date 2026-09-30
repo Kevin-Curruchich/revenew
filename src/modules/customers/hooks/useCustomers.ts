@@ -1,19 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
-  getClients,
-  type CustomersResponse,
-  type GetCustomerParams,
-} from "../actions/get-clients";
+  getCustomers,
+  type GetCustomersParams,
+} from "../actions/get-customers";
+import { customerKeys } from "./query-keys";
 
-export const useCustomers = (params: GetCustomerParams = {}) => {
-  return useQuery<CustomersResponse>({
-    queryKey: [
-      "clients",
-      params.offset ?? 0,
-      params.limit ?? 10,
-      params.search ?? "",
-    ],
-    queryFn: () => getClients(params),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+export const useCustomers = (params: GetCustomersParams = {}) => {
+  return useQuery({
+    queryKey: customerKeys.list(params),
+    queryFn: () => getCustomers(params),
+    // Keep showing the current page while the next one loads.
+    placeholderData: keepPreviousData,
   });
 };

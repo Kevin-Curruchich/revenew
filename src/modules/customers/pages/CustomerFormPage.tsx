@@ -1,9 +1,5 @@
-import { Link, useParams, useNavigate } from "react-router";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useNavigate, useParams } from "react-router";
+
 import {
   Card,
   CardContent,
@@ -11,118 +7,65 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { ErrorState, LoadingState } from "@/components/shared/QueryStates";
+import type { CustomerPayload } from "../actions/create-customer";
+import { CustomerForm } from "../components/CustomerForm";
+import { CustomerNextPurchases } from "../components/CustomerNextPurchases";
+import { CustomerPurchaseHistory } from "../components/CustomerPurchaseHistory";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useCustomer } from "../hooks/useCustomer";
-
-// Zod validation schema
-const customerFormSchema = z.object({
-  name: z.string().min(1, "El nombre es requerido"),
-  company: z.string().optional(),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type CustomerFormData = z.infer<typeof customerFormSchema>;
+  useCreateCustomer,
+  useCustomer,
+  useUpdateCustomer,
+} from "../hooks/useCustomer";
 
 export const CustomerFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isEditing = id && id !== "new";
+  const isEditing = !!id;
 
-  const {
-    customer,
-    isLoading,
-    createCustomer,
-    updateCustomer,
-    isCreating,
-    isUpdating,
-  } = useCustomer(id!);
+  const customerQuery = useCustomer(id);
+  const createCustomer = useCreateCustomer();
+  const updateCustomer = useUpdateCustomer();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<CustomerFormData>({
-    resolver: zodResolver(customerFormSchema),
-    values: customer
-      ? {
-          name: customer.name,
-          company: customer.company ?? "",
-          email: customer.email ?? "",
-          phone: customer.phone ?? "",
-          address: customer.address ?? "",
-          notes: customer.notes ?? "",
-        }
-      : undefined,
-  });
-
-  // Reset form when customer data is loaded in edit mode
-  useEffect(() => {
-    if (isEditing && customer) {
-      reset({
-        name: customer.name,
-        company: customer.company ?? "",
-        email: customer.email ?? "",
-        phone: customer.phone ?? "",
-        address: customer.address ?? "",
-        notes: customer.notes ?? "",
-      });
+  const handleSubmit = async (payload: CustomerPayload) => {
+    if (id) {
+      await updateCustomer.mutateAsync({ id, data: payload });
+    } else {
+      await createCustomer.mutateAsync(payload);
     }
-  }, [isEditing, customer, reset]);
-
-  const onSubmit = async (data: CustomerFormData) => {
-    try {
-      const payload = {
-        name: data.name,
-        company: data.company || null,
-        email: data.email || null,
-        phone: data.phone || null,
-        address: data.address || null,
-        notes: data.notes || null,
-      };
-
-      if (isEditing) {
-        await updateCustomer({ customerId: id, data: payload });
-      } else {
-        await createCustomer(payload);
-      }
-      navigate("/customers");
-    } catch (error) {
-      console.error("Error saving customer:", error);
-    }
+    navigate("/customers");
   };
 
-  if (isEditing && isLoading) {
-    return <p>Cargando información del cliente...</p>;
+  if (isEditing && customerQuery.isPending) {
+    return <LoadingState label="Cargando información del cliente..." />;
   }
+
+  if (isEditing && customerQuery.isError) {
+    return (
+      <ErrorState
+        error={customerQuery.error}
+        title="No se pudo cargar el cliente"
+        onRetry={() => customerQuery.refetch()}
+      />
+    );
+  }
+
+  const customer = customerQuery.data;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">
-          {isEditing ? "Editar Cliente" : "Nuevo Cliente"}
-        </h1>
-        <p className="text-gray-600">
-          {isEditing
+      <PageHeader
+        backTo="/customers"
+        title={isEditing ? "Editar Cliente" : "Nuevo Cliente"}
+        description={
+          isEditing
             ? "Actualiza la información del cliente"
-            : "Registra un nuevo cliente"}
-        </p>
-      </div>
+            : "Registra un nuevo cliente"
+        }
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column - Customer Form */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Información del Cliente</CardTitle>
@@ -131,213 +74,22 @@ export const CustomerFormPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nombre Completo *</Label>
-                  <Input
-                    id="name"
-                    placeholder="Juan Pérez"
-                    {...register("name")}
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-red-500">
-                      {errors.name.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="company">Empresa</Label>
-                  <Input
-                    id="company"
-                    placeholder="Empresa S.A."
-                    {...register("company")}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="cliente@email.com"
-                    {...register("email")}
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-red-500">
-                      {errors.email.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Teléfono</Label>
-                  <Input
-                    id="phone"
-                    placeholder="+52 123 456 7890"
-                    {...register("phone")}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Dirección</Label>
-                <Input
-                  id="address"
-                  placeholder="Calle, Ciudad, Estado"
-                  {...register("address")}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notas</Label>
-                <textarea
-                  id="notes"
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  placeholder="Información adicional sobre el cliente..."
-                  {...register("notes")}
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  type="submit"
-                  className="w-full sm:w-auto"
-                  disabled={isCreating || isUpdating}
-                >
-                  {isCreating || isUpdating
-                    ? "Guardando..."
-                    : isEditing
-                      ? "Actualizar Cliente"
-                      : "Crear Cliente"}
-                </Button>
-                <Link to="/customers" className="w-full sm:w-auto">
-                  <Button type="button" variant="outline" className="w-full">
-                    Cancelar
-                  </Button>
-                </Link>
-              </div>
-            </form>
+            {/* `key` remounts the form (fresh default values) per customer. */}
+            <CustomerForm
+              key={customer?.id ?? "new"}
+              customer={customer}
+              onSubmit={handleSubmit}
+            />
           </CardContent>
         </Card>
 
-        {/* Right Column - Purchase History */}
         <div className="space-y-6">
-          {isEditing &&
-            customer?.last_purchases &&
-            customer.last_purchases.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Últimas Compras</CardTitle>
-                  <CardDescription>
-                    Historial de compras recientes del cliente
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {customer.last_purchases.map((purchase) => (
-                      <div
-                        key={purchase.id}
-                        className="border rounded-lg p-4 space-y-3"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="text-sm text-gray-500">Fecha</p>
-                            <p className="font-medium">
-                              {purchase.date_formatted}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500">Total</p>
-                            <p className="font-bold text-lg">
-                              ${purchase.total.toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <p className="text-sm font-medium text-gray-700">
-                            Productos:
-                          </p>
-                          {purchase.items.map((item) => (
-                            <div
-                              key={item.id}
-                              className="flex justify-between text-sm bg-gray-50 p-2 rounded"
-                            >
-                              <div>
-                                <p className="font-medium">
-                                  {item.product_name}
-                                </p>
-                                <p className="text-gray-500">
-                                  x{item.quantity} @{item.unit_price.toFixed(2)}
-                                </p>
-                              </div>
-                              <p className="font-medium">
-                                ${item.subtotal.toFixed(2)}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="pt-2">
-                          <Link to={`/sales/${purchase.id}`}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full"
-                            >
-                              Ver Detalles Completos
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-          {isEditing &&
-            customer?.next_purchases &&
-            customer.next_purchases.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Próximas Compras Estimadas</CardTitle>
-                  <CardDescription>
-                    Predicciones basadas en el historial de compras
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Producto</TableHead>
-                        <TableHead>Fecha Estimada</TableHead>
-                        <TableHead>Última Cantidad</TableHead>
-                        <TableHead>Intervalo (días)</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {customer.next_purchases.map((nextPurchase, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            {nextPurchase.product_name}
-                          </TableCell>
-                          <TableCell>{nextPurchase.estimated_date}</TableCell>
-                          <TableCell>{nextPurchase.last_quantity}</TableCell>
-                          <TableCell>
-                            {nextPurchase.avg_interval_days}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            )}
+          {customer?.last_purchases?.length ? (
+            <CustomerPurchaseHistory purchases={customer.last_purchases} />
+          ) : null}
+          {customer?.next_purchases?.length ? (
+            <CustomerNextPurchases purchases={customer.next_purchases} />
+          ) : null}
         </div>
       </div>
     </div>

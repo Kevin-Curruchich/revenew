@@ -1,4 +1,6 @@
-import { useCallback } from "react";
+import { Link } from "react-router";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,6 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -15,72 +25,55 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Pagination } from "@/components/ui/pagination";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { Pagination } from "@/components/shared/Pagination";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Link, useSearchParams } from "react-router";
-import { formatCurrency } from "@/lib/formatters";
-
-import { useSales } from "../hooks/useSales";
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/components/shared/QueryStates";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { useListSearchParams } from "@/hooks/useListSearchParams";
+import { formatCurrency, pluralize, shortId } from "@/lib/formatters";
 import { useCustomers } from "@/modules/customers/hooks/useCustomers";
+import { getPaymentStatusBadge } from "../domain/sale";
+import { useSales } from "../hooks/useSales";
 
-const LIMIT = 10;
+const PAGE_SIZE = 10;
+const ALL_CUSTOMERS = "all";
+// TODO: replace with a searchable combobox once there are many customers.
+const CUSTOMER_OPTIONS_LIMIT = 200;
 
 export const SalesListPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { offset, limit, getParam, setParams } = useListSearchParams(PAGE_SIZE);
+  const customerId = getParam("customer_id");
+  const startDate = getParam("start_date");
+  const endDate = getParam("end_date");
 
-  const page = Math.max(1, Number(searchParams.get("page") ?? 1));
-  const customer = searchParams.get("customer") ?? "";
-  const customer_id = searchParams.get("customer_id") ?? "";
-  const start_date = searchParams.get("start_date") ?? "";
-  const end_date = searchParams.get("end_date") ?? "";
-  const offset = (page - 1) * LIMIT;
-
-  const { data, isLoading } = useSales({
+  const { data, isPending, isError, error, refetch } = useSales({
     offset,
-    limit: LIMIT,
-    customer,
-    customer_id,
-    start_date,
-    end_date,
+    limit,
+    customer_id: customerId,
+    start_date: startDate,
+    end_date: endDate,
   });
-  const { data: customersData } = useCustomers({ limit: 200 });
+  const { data: customersData } = useCustomers({
+    limit: CUSTOMER_OPTIONS_LIMIT,
+  });
 
-  const setParam = useCallback(
-    (key: string, value: string) => {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        if (value) {
-          next.set(key, value);
-        } else {
-          next.delete(key);
-        }
-        // Reset to page 1 when filters change
-        next.delete("page");
-        return next;
-      });
-    },
-    [setSearchParams],
-  );
+  const hasFilters = !!(customerId || startDate || endDate);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Ventas</h1>
-          <p className="text-gray-600">Historial de ventas registradas</p>
-        </div>
-        <Link to="/sales/new" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">+ Nueva Venta</Button>
-        </Link>
-      </div>
+      <PageHeader
+        title="Ventas"
+        description="Historial de ventas registradas"
+        actions={
+          <Button asChild>
+            <Link to="/sales/new">+ Nueva Venta</Link>
+          </Button>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -88,22 +81,29 @@ export const SalesListPage = () => {
           <CardDescription>
             Todas las ventas registradas en el sistema
           </CardDescription>
-          <div className="pt-4 flex flex-col sm:flex-row gap-4 flex-wrap">
+          <div className="flex flex-col flex-wrap gap-4 pt-4 sm:flex-row">
             <Select
-              value={customer_id}
-              onValueChange={(val) =>
-                setParam("customer_id", val === "all" ? "" : val)
+              value={customerId || ALL_CUSTOMERS}
+              onValueChange={(value) =>
+                setParams({
+                  customer_id: value === ALL_CUSTOMERS ? null : value,
+                })
               }
             >
-              <SelectTrigger className="w-full sm:w-55">
+              <SelectTrigger
+                className="w-full sm:w-56"
+                aria-label="Filtrar por cliente"
+              >
                 <SelectValue placeholder="Filtrar por cliente" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los clientes</SelectItem>
-                {customersData?.data.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                    {c.company ? ` · ${c.company}` : ""}
+                <SelectItem value={ALL_CUSTOMERS}>
+                  Todos los clientes
+                </SelectItem>
+                {customersData?.data.map((customer) => (
+                  <SelectItem key={customer.id} value={customer.id}>
+                    {customer.name}
+                    {customer.company ? ` · ${customer.company}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -112,111 +112,106 @@ export const SalesListPage = () => {
               <Input
                 type="date"
                 className="w-full sm:w-auto"
-                value={start_date}
-                onChange={(e) => setParam("start_date", e.target.value)}
-                title="Fecha inicio"
+                value={startDate}
+                max={endDate || undefined}
+                onChange={(event) =>
+                  setParams({ start_date: event.target.value })
+                }
+                aria-label="Fecha inicio"
               />
-              <span className="text-muted-foreground text-sm shrink-0">—</span>
+              <span className="shrink-0 text-sm text-muted-foreground">—</span>
               <Input
                 type="date"
                 className="w-full sm:w-auto"
-                value={end_date}
-                onChange={(e) => setParam("end_date", e.target.value)}
-                title="Fecha fin"
+                value={endDate}
+                min={startDate || undefined}
+                onChange={(event) =>
+                  setParams({ end_date: event.target.value })
+                }
+                aria-label="Fecha fin"
               />
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Productos</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Pago</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="text-center py-8 text-muted-foreground"
-                  >
-                    Cargando ventas...
-                  </TableCell>
-                </TableRow>
-              ) : data?.data.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="text-center py-8 text-muted-foreground"
-                  >
-                    No se encontraron ventas
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data?.data.map((sale) => (
-                  <TableRow key={sale.id}>
-                    <TableCell className="font-medium">
-                      #{sale.id.slice(0, 8)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">
-                          {sale.customer_name}
-                        </span>
-                        {sale.customer_company && (
-                          <span className="text-xs text-gray-500">
-                            {sale.customer_company}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{sale.date}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <Badge variant="outline" className="w-fit">
-                          {sale.items.length} producto
-                          {sale.items.length !== 1 ? "s" : ""}
-                        </Badge>
-                        <span className="text-xs text-gray-500">
-                          {sale.items
-                            .map((item) => item.product_name)
-                            .join(", ")}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-semibold">
-                      {formatCurrency(sale.total)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          sale.is_payment_pending ? "secondary" : "default"
-                        }
-                      >
-                        {sale.is_payment_pending ? "Pendiente" : "Pagado"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link to={`/sales/${sale.id}`}>
-                        <Button variant="ghost" size="sm">
-                          Ver
-                        </Button>
-                      </Link>
-                    </TableCell>
+          {isPending ? (
+            <LoadingState label="Cargando ventas..." />
+          ) : isError ? (
+            <ErrorState error={error} onRetry={() => refetch()} />
+          ) : data.data.length === 0 ? (
+            <EmptyState
+              title="No se encontraron ventas"
+              description={
+                hasFilters ? "Prueba ajustando los filtros." : undefined
+              }
+            />
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Productos</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Pago</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-
-          {data && <Pagination total={data.meta.total} limit={LIMIT} />}
+                </TableHeader>
+                <TableBody>
+                  {data.data.map((sale) => (
+                    <TableRow key={sale.id}>
+                      <TableCell className="font-medium">
+                        {shortId(sale.id)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium">
+                            {sale.customer_name}
+                          </span>
+                          {sale.customer_company ? (
+                            <span className="text-xs text-muted-foreground">
+                              {sale.customer_company}
+                            </span>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                      <TableCell>{sale.date}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <Badge variant="outline">
+                            {pluralize(sale.items.length, "producto")}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {sale.items
+                              .map((item) => item.product_name)
+                              .join(", ")}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        {formatCurrency(sale.total)}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          status={getPaymentStatusBadge(
+                            sale.is_payment_pending,
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link to={`/sales/${sale.id}`}>Ver</Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Pagination total={data.meta.total} limit={limit} />
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -1,3 +1,6 @@
+import { Link } from "react-router";
+
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -5,85 +8,49 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { formatCurrency } from "@/lib/formatters";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { ErrorState, LoadingState } from "@/components/shared/QueryStates";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { formatCurrency, pluralize } from "@/lib/formatters";
 import { getFollowUpStatusBadge } from "@/modules/follow-up/helpers/get-follow-up-status-badge";
-
+import { StatCard } from "../components/StatCard";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
 
 export const DashboardPage = () => {
-  const { data, isLoading, isError, error } = useDashboardSummary();
+  const { data, isPending, isError, error, refetch } = useDashboardSummary();
 
-  if (isLoading) {
-    return (
-      <div className="py-16">
-        <LoadingSpinner label="Cargando resumen del dashboard..." />
-      </div>
-    );
+  if (isPending) {
+    return <LoadingState label="Cargando resumen del dashboard..." />;
   }
 
   if (isError) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>No se pudo cargar el dashboard</CardTitle>
-          <CardDescription>
-            {error instanceof Error
-              ? error.message
-              : "Ocurrió un error al obtener el resumen."}
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <ErrorState
+        error={error}
+        title="No se pudo cargar el dashboard"
+        onRetry={() => refetch()}
+      />
     );
-  }
-
-  if (!data) {
-    return null;
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-gray-600">Resumen de tu negocio</p>
+      <PageHeader title="Dashboard" description="Resumen de tu negocio" />
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total Clientes" value={data.totalCustomers} />
+        <StatCard
+          label="Ventas Este Mes"
+          value={formatCurrency(data.salesThisMonth)}
+        />
+        <StatCard label="Seguimiento Pendiente" value={data.pendingFollowUps} />
+        <StatCard
+          label="Compras Próximas (7 días)"
+          value={data.upcomingPurchases7Days}
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader>
-            <CardDescription>Total Clientes</CardDescription>
-            <CardTitle className="text-3xl">{data.totalCustomers}</CardTitle>
-          </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardDescription>Ventas Este Mes</CardDescription>
-            <CardTitle className="text-3xl">
-              {formatCurrency(data.salesThisMonth)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardDescription>Seguimiento Pendiente</CardDescription>
-            <CardTitle className="text-3xl">{data.pendingFollowUps}</CardTitle>
-          </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardDescription>Compras Próximas (7 días)</CardDescription>
-            <CardTitle className="text-3xl">
-              {data.upcomingPurchases7Days}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Últimas Ventas</CardTitle>
@@ -91,28 +58,31 @@ export const DashboardPage = () => {
           </CardHeader>
           <CardContent>
             {data.recentSales.length === 0 ? (
-              <p className="text-sm text-gray-600">No hay ventas recientes.</p>
+              <p className="text-sm text-muted-foreground">
+                No hay ventas recientes.
+              </p>
             ) : (
-              <div className="space-y-3">
+              <ul className="space-y-3">
                 {data.recentSales.map((sale) => (
-                  <div
-                    key={sale.id}
-                    className="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0"
-                  >
-                    <div className="space-y-1">
-                      <p className="font-medium">{sale.customer_name}</p>
-                      <p className="text-xs text-gray-500">
-                        {sale.created_at_formatted} • {sale.items.length}{" "}
-                        producto
-                        {sale.items.length !== 1 ? "s" : ""}
+                  <li key={sale.id}>
+                    <Link
+                      to={`/sales/${sale.id}`}
+                      className="-mx-2 flex items-center justify-between rounded-md border-b px-2 py-2 transition-colors hover:bg-accent"
+                    >
+                      <div className="space-y-1">
+                        <p className="font-medium">{sale.customer_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {sale.created_at_formatted} •{" "}
+                          {pluralize(sale.items.length, "producto")}
+                        </p>
+                      </div>
+                      <p className="font-semibold">
+                        {formatCurrency(sale.total)}
                       </p>
-                    </div>
-                    <p className="font-semibold">
-                      {formatCurrency(sale.total)}
-                    </p>
-                  </div>
+                    </Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </CardContent>
         </Card>
@@ -126,55 +96,56 @@ export const DashboardPage = () => {
           </CardHeader>
           <CardContent>
             {data.priorityCustomers.length === 0 ? (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 No hay clientes prioritarios en este momento.
               </p>
             ) : (
               <div className="space-y-4">
-                {data.priorityCustomers.map((customer) => {
-                  const statusInfo = getFollowUpStatusBadge(customer.status);
-
-                  return (
-                    <div
-                      key={customer.customer_id}
-                      className="rounded-lg border p-3"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="font-medium">{customer.customer}</p>
-                          <p className="text-xs text-gray-500">
-                            {customer.email ?? "Sin correo electrónico"}
-                          </p>
-                        </div>
-                        <Badge variant={statusInfo.variant}>
-                          {statusInfo.label}
-                        </Badge>
+                {data.priorityCustomers.map((customer) => (
+                  <div
+                    key={customer.customer_id}
+                    className="rounded-lg border p-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <Link
+                          to={`/customers/${customer.customer_id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {customer.customer}
+                        </Link>
+                        <p className="text-xs text-muted-foreground">
+                          {customer.email ?? "Sin correo electrónico"}
+                        </p>
                       </div>
-
-                      <div className="mt-3 space-y-2">
-                        {customer.items.map((item) => (
-                          <div
-                            key={item.product_id}
-                            className="flex items-start justify-between gap-3 text-sm"
-                          >
-                            <div>
-                              <p className="font-medium">{item.product_name}</p>
-                              <p className="text-xs text-gray-500">
-                                Próxima compra:{" "}
-                                {item.estimated_next_purchase ?? "N/A"}
-                              </p>
-                            </div>
-                            {item.stock_alert ? (
-                              <Badge variant="destructive">Stock bajo</Badge>
-                            ) : (
-                              <Badge variant="outline">Stock OK</Badge>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                      <StatusBadge
+                        status={getFollowUpStatusBadge(customer.status)}
+                      />
                     </div>
-                  );
-                })}
+
+                    <div className="mt-3 space-y-2">
+                      {customer.items.map((item) => (
+                        <div
+                          key={item.product_id}
+                          className="flex items-start justify-between gap-3 text-sm"
+                        >
+                          <div>
+                            <p className="font-medium">{item.product_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Próxima compra:{" "}
+                              {item.estimated_next_purchase ?? "N/A"}
+                            </p>
+                          </div>
+                          {item.stock_alert ? (
+                            <Badge variant="destructive">Stock bajo</Badge>
+                          ) : (
+                            <Badge variant="outline">Stock OK</Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>

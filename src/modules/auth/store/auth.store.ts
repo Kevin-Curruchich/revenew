@@ -3,120 +3,108 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
+  type Unsubscribe,
+  type User as FirebaseUser,
 } from "firebase/auth";
+
 import { auth } from "@/lib/firebase";
-import type { User } from "@/types/user";
+import { queryClient } from "@/lib/query-client";
 
 import { getUserProfile } from "../actions/get-user-profile";
+import { getAuthErrorMessage } from "../helpers/get-auth-error-message";
+import type { User } from "../domain/user";
+
+/**
+ * - `initializing`: waiting for Firebase to restore the session (and the
+ *   profile, if there is one). The app shows a full page loader.
+ * - `authenticated`: Firebase session + backend profile loaded.
+ * - `unauthenticated`: no session (or the profile could not be loaded).
+ */
+export type AuthStatus = "initializing" | "authenticated" | "unauthenticated";
 
 interface AuthState {
   user: User | null;
+  status: AuthStatus;
   error: string | null;
-  isLoading: boolean; // For Firebase initialization and auth operations
-  isFetchingProfile: boolean; // Track profile fetch to prevent duplicates
 
-  // Computed properties (derived from state)
-  isAuthenticated: () => boolean;
-
-  // Actions
-  initialize: () => void;
+  /** Subscribes to Firebase auth changes. Returns the unsubscribe function. */
+  initialize: () => Unsubscribe;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  getToken: () => Promise<string | null>;
-  setError: (error: string | null) => void;
+  clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
-  // Initial State
-  user: null,
-  error: null,
-  isLoading: true, // For Firebase initialization
-  isFetchingProfile: false,
+// Both the auth listener and `login` load the profile for the same Firebase
+// user; share the in-flight request so `/auth/me` is only called once.
+let pendingProfileSync: { uid: string; promise: Promise<void> } | null = null;
 
-  // Computed properties
-  isAuthenticated: () => get().user !== null,
+export const useAuthStore = create<AuthState>((set) => {
+  const syncProfile = (firebaseUser: FirebaseUser): Promise<void> => {
+    if (pendingProfileSync?.uid === firebaseUser.uid) {
+      return pendingProfileSync.promise;
+    }
 
-  setError: (error) => set({ error }),
+    const promise = getUserProfile()
+      .then((user) => {
+        set({ user, status: "authenticated", error: null });
+      })
+      .catch(async () => {
+        // A Firebase session without a backend profile is unusable: end it so
+        // the user can try again from the login page.
+        await signOut(auth);
+        set({
+          user: null,
+          status: "unauthenticated",
+          error:
+            "No se pudo cargar tu perfil. Intenta iniciar sesión de nuevo.",
+        });
+      })
+      .finally(() => {
+        pendingProfileSync = null;
+      });
 
-  initialize: () => {
-    onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Prevent duplicate profile fetches
-        const { isFetchingProfile } = get();
+    pendingProfileSync = { uid: firebaseUser.uid, promise };
+    return promise;
+  };
 
-        if (isFetchingProfile) {
+  return {
+    user: null,
+    status: "initializing",
+    error: null,
+
+    initialize: () =>
+      onAuthStateChanged(auth, (firebaseUser) => {
+        if (firebaseUser) {
+          void syncProfile(firebaseUser);
           return;
         }
 
-        // User is signed in - fetch profile
-        set({ isFetchingProfile: true, isLoading: true });
+        // Never leak cached data from one session to the next.
+        queryClient.clear();
+        // `error` is intentionally preserved so the login page can show why
+        // the session ended.
+        set({ user: null, status: "unauthenticated" });
+      }),
 
-        try {
-          const profile = await getUserProfile();
-
-          if (!profile) {
-            set({
-              user: null,
-              isLoading: false,
-              isFetchingProfile: false,
-              error: "Failed to fetch user profile",
-            });
-            return;
-          }
-
-          set({
-            user: profile,
-            isLoading: false,
-            isFetchingProfile: false,
-            error: null,
-          });
-        } catch {
-          set({
-            user: null,
-            isLoading: false,
-            isFetchingProfile: false,
-            error: "Failed to fetch user profile",
-          });
-        }
-      } else {
-        // User is signed out - ensure loading is false
-        set({
-          user: null,
-          isLoading: false,
-          isFetchingProfile: false,
-          error: null,
-        });
-      }
-    });
-  },
-
-  // Remove manual token storage from login
-  login: async (email, password) => {
-    try {
+    login: async (email, password) => {
       set({ error: null });
-      await signInWithEmailAndPassword(auth, email, password);
-      // onAuthStateChanged will handle the rest
-    } catch (err) {
-      set({ error: err instanceof Error ? err.message : "Login failed" });
-      throw err;
-    }
-  },
+      try {
+        const credentials = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password,
+        );
+        await syncProfile(credentials.user);
+      } catch (error) {
+        set({ error: getAuthErrorMessage(error) });
+      }
+    },
 
-  // Get fresh tokens when needed (for API calls)
-  getToken: async () => {
-    const user = auth.currentUser;
-    if (user) {
-      return await user.getIdToken();
-    }
-    return null;
-  },
-
-  logout: async () => {
-    try {
+    logout: async () => {
+      set({ error: null });
       await signOut(auth);
-      // onAuthStateChanged will handle the state reset
-    } catch (err) {
-      set({ error: err instanceof Error ? err.message : "Logout failed" });
-    }
-  },
-}));
+    },
+
+    clearError: () => set({ error: null }),
+  };
+});

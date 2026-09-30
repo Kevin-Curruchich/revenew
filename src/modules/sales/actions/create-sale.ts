@@ -8,13 +8,13 @@ export interface SaleItemPayload {
   pricingExceptionReason?: string;
 }
 
-export interface CreateSaleData {
+export interface SalePayload {
   customerId: string;
   date: string;
   items: SaleItemPayload[];
 }
 
-export const createSale = async (data: CreateSaleData): Promise<Sale> => {
+export const createSale = async (data: SalePayload): Promise<Sale> => {
   const response = await revenewApi.post<Sale>("/sales", data);
   return response.data;
 };

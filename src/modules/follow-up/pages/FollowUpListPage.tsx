@@ -1,4 +1,5 @@
-import { useSearchParams } from "react-router";
+import { Link } from "react-router";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,65 +16,73 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { Pagination } from "@/components/shared/Pagination";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/components/shared/QueryStates";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { useListSearchParams } from "@/hooks/useListSearchParams";
+import { cn } from "@/lib/utils";
+import {
+  isFollowUpFilter,
+  type FollowUpFilter,
+} from "../actions/get-follow-ups";
+import {
+  formatDaysUntil,
+  getFollowUpStatusBadge,
+} from "../helpers/get-follow-up-status-badge";
 import { useFollowUps } from "../hooks/useFollowUps";
-import type { FollowUpFilter } from "../actions/get-follow-ups";
-import { getFollowUpStatusBadge } from "../helpers/get-follow-up-status-badge";
+
+const PAGE_SIZE = 10;
+
+const filterOptions: { value: FollowUpFilter; label: string }[] = [
+  { value: "all", label: "Todos" },
+  { value: "overdue", label: "Atrasados" },
+  { value: "7_days", label: "7 días" },
+  { value: "14_days", label: "14 días" },
+  { value: "30_days", label: "30 días" },
+];
 
 export const FollowUpListPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { offset, limit, getParam, setParams } = useListSearchParams(PAGE_SIZE);
+  const filterParam = getParam("filter");
+  // Ignore unknown values coming from a hand-edited URL.
+  const filter: FollowUpFilter = isFollowUpFilter(filterParam)
+    ? filterParam
+    : "all";
 
-  // Get filter from query params, default to "all"
-  const filterParam = searchParams.get("filter") as FollowUpFilter | null;
-  const filter: FollowUpFilter = filterParam || "all";
-  const { data, isLoading } = useFollowUps({ filter, offset: 0, limit: 10 });
+  const { data, isPending, isError, error, refetch } = useFollowUps({
+    filter,
+    offset,
+    limit,
+  });
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Seguimiento</h1>
-          <p className="text-gray-600">Clientes que requieren atención</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Seguimiento"
+        description="Clientes que requieren atención"
+      />
 
-      <div className="flex flex-wrap gap-2 sm:gap-4">
-        <Button
-          variant={filter === "all" ? "default" : "outline"}
-          onClick={() => setSearchParams({ filter: "all" })}
-          className="flex-1 sm:flex-none"
-        >
-          Todos
-        </Button>
-        <Button
-          variant={filter === "overdue" ? "default" : "outline"}
-          onClick={() => setSearchParams({ filter: "overdue" })}
-          className="flex-1 sm:flex-none"
-        >
-          Atrasados
-        </Button>
-        <Button
-          variant={filter === "7_days" ? "default" : "outline"}
-          onClick={() => setSearchParams({ filter: "7_days" })}
-          className="flex-1 sm:flex-none"
-        >
-          7 días
-        </Button>
-        <Button
-          variant={filter === "14_days" ? "default" : "outline"}
-          onClick={() => setSearchParams({ filter: "14_days" })}
-          className="flex-1 sm:flex-none"
-        >
-          14 días
-        </Button>
-        <Button
-          variant={filter === "30_days" ? "default" : "outline"}
-          onClick={() => setSearchParams({ filter: "30_days" })}
-          className="flex-1 sm:flex-none"
-        >
-          30 días
-        </Button>
+      <div className="flex flex-wrap gap-2 sm:gap-4" role="group">
+        {filterOptions.map((option) => (
+          <Button
+            key={option.value}
+            variant={filter === option.value ? "default" : "outline"}
+            aria-pressed={filter === option.value}
+            onClick={() =>
+              setParams({
+                filter: option.value === "all" ? null : option.value,
+              })
+            }
+            className="flex-1 sm:flex-none"
+          >
+            {option.label}
+          </Button>
+        ))}
       </div>
 
       <Card>
@@ -84,37 +93,39 @@ export const FollowUpListPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <p>Cargando seguimientos...</p>
+          {isPending ? (
+            <LoadingState label="Cargando seguimientos..." />
+          ) : isError ? (
+            <ErrorState error={error} onRetry={() => refetch()} />
+          ) : data.data.length === 0 ? (
+            <EmptyState title="No hay seguimientos para mostrar" />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Productos</TableHead>
-                  <TableHead>Próxima Compra Estimada</TableHead>
-                  <TableHead>Días Restantes</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data?.data.length === 0 ? (
+            <>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">
-                      No hay seguimientos para mostrar
-                    </TableCell>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Productos</TableHead>
+                    <TableHead>Próxima Compra Estimada</TableHead>
+                    <TableHead>Días Restantes</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
-                ) : (
-                  data?.data.map((followUp) => {
-                    const statusInfo = getFollowUpStatusBadge(followUp.status);
+                </TableHeader>
+                <TableBody>
+                  {data.data.map((followUp) => {
+                    // Items come sorted by estimated date: the first is the
+                    // most urgent one.
+                    const nextItem = followUp.items[0];
+                    const daysUntil = nextItem?.days_until ?? null;
+
                     return (
                       <TableRow key={followUp.customer_id}>
                         <TableCell className="font-medium">
                           {followUp.customer}
                         </TableCell>
-                        <TableCell>{followUp.email || "N/A"}</TableCell>
+                        <TableCell>{followUp.email ?? "N/A"}</TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             {followUp.items.map((item) => (
@@ -125,44 +136,47 @@ export const FollowUpListPage = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {followUp.items[0]?.estimated_next_purchase || "N/A"}
+                          {nextItem?.estimated_next_purchase ?? "N/A"}
                         </TableCell>
                         <TableCell>
                           <span
-                            className={
-                              followUp.items[0]?.days_until &&
-                              followUp.items[0].days_until < 0
-                                ? "text-red-600 font-semibold"
-                                : ""
-                            }
+                            className={cn(
+                              daysUntil !== null &&
+                                daysUntil < 0 &&
+                                "font-semibold text-destructive",
+                            )}
                           >
-                            {followUp.items[0]?.days_until &&
-                            followUp.items[0].days_until < 0
-                              ? `${Math.abs(followUp.items[0].days_until)} días atrasado`
-                              : `${followUp.items[0]?.days_until || 0} días`}
+                            {formatDaysUntil(daysUntil)}
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={statusInfo.variant}>
-                            {statusInfo.label}
-                          </Badge>
+                          <StatusBadge
+                            status={getFollowUpStatusBadge(followUp.status)}
+                          />
                         </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <Link to={`/customers/${followUp.customer_id}`}>
-                            <Button variant="ghost" size="sm">
-                              Ver Cliente
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link to={`/customers/${followUp.customer_id}`}>
+                                Ver Cliente
+                              </Link>
                             </Button>
-                          </Link>
-                          <Link to="/sales/new">
-                            <Button size="sm">Registrar Venta</Button>
-                          </Link>
+                            <Button size="sm" asChild>
+                              <Link
+                                to={`/sales/new?customerId=${followUp.customer_id}`}
+                              >
+                                Registrar Venta
+                              </Link>
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
-                  })
-                )}
-              </TableBody>
-            </Table>
+                  })}
+                </TableBody>
+              </Table>
+              <Pagination total={data.meta.total} limit={limit} />
+            </>
           )}
         </CardContent>
       </Card>

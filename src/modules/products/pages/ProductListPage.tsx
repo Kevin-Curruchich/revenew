@@ -1,3 +1,6 @@
+import { Link } from "react-router";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,46 +17,53 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { Pagination } from "@/components/shared/Pagination";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/components/shared/QueryStates";
+import { SearchInput } from "@/components/shared/SearchInput";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { useListSearchParams } from "@/hooks/useListSearchParams";
+import { formatCurrency } from "@/lib/formatters";
+import {
+  getEarningLabel,
+  getStockAlertStatus,
+  productStatusBadge,
+  stockAlertBadge,
+} from "../helpers/product-labels";
 import { useProducts } from "../hooks/useProducts";
 
-const getEarningLabel = (
-  mode: "percent" | "fee",
-  percent: string | number,
-  feeAmount: string | number,
-) => {
-  if (mode === "percent") {
-    return `${percent}%`;
-  }
-
-  const parsedFee =
-    typeof feeAmount === "number" ? feeAmount : parseFloat(feeAmount);
-
-  return `Q${parsedFee?.toFixed(2) || "0.00"}`;
-};
+const PAGE_SIZE = 10;
 
 export const ProductListPage = () => {
-  const { data, isLoading } = useProducts({ offset: 0, limit: 10 });
+  const { offset, limit, getParam, setParams } = useListSearchParams(PAGE_SIZE);
+  const search = getParam("search");
+
+  const { data, isPending, isError, error, refetch } = useProducts({
+    offset,
+    limit,
+    search,
+  });
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Productos</h1>
-          <p className="text-gray-600">Administra tu inventario y catálogo</p>
-        </div>
-        <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-          <Link to="/purchases/new" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full sm:w-auto">
-              + Registrar Compra
+      <PageHeader
+        title="Productos"
+        description="Administra tu inventario y catálogo"
+        actions={
+          <>
+            <Button variant="outline" asChild>
+              <Link to="/purchases/new">+ Registrar Compra</Link>
             </Button>
-          </Link>
-          <Link to="/products/new" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto">+ Nuevo Producto</Button>
-          </Link>
-        </div>
-      </div>
+            <Button asChild>
+              <Link to="/products/new">+ Nuevo Producto</Link>
+            </Button>
+          </>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -62,83 +72,96 @@ export const ProductListPage = () => {
             Todos los productos registrados en el sistema
           </CardDescription>
           <div className="pt-4">
-            <Input
+            <SearchInput
+              defaultValue={search}
+              onSearch={(value) => setParams({ search: value })}
               placeholder="Buscar por nombre o SKU..."
-              className="w-full sm:max-w-sm"
             />
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <p>Cargando productos...</p>
+          {isPending ? (
+            <LoadingState label="Cargando productos..." />
+          ) : isError ? (
+            <ErrorState error={error} onRetry={() => refetch()} />
+          ) : data.data.length === 0 ? (
+            <EmptyState
+              title="No se encontraron productos"
+              description={
+                search
+                  ? "Prueba con otro término de búsqueda."
+                  : "Registra tu primer producto para empezar."
+              }
+            />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Precio</TableHead>
-                  <TableHead>Ganancia</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data?.data.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.sku}</TableCell>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>Q{product.suggested_price}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {getEarningLabel(
-                          product.earning_mode,
-                          product.earning_percent,
-                          product.earning_fee_amount,
-                        )}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          product.stock > 10
-                            ? "outline"
-                            : product.stock > 0
-                              ? "secondary"
-                              : "destructive"
-                        }
-                      >
-                        {product.stock} unid.
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          product.status === "active" ? "default" : "secondary"
-                        }
-                      >
-                        {product.status === "active" ? "Activo" : "Inactivo"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Link to={`/purchases/new?productId=${product.id}`}>
-                          <Button variant="outline" size="sm">
-                            Comprar
-                          </Button>
-                        </Link>
-                        <Link to={`/products/${product.id}`}>
-                          <Button variant="ghost" size="sm">
-                            Editar
-                          </Button>
-                        </Link>
-                      </div>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>Nombre</TableHead>
+                    <TableHead>Precio</TableHead>
+                    <TableHead>Ganancia</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {data.data.map((product) => {
+                    const stockAlert = getStockAlertStatus(product);
+                    return (
+                      <TableRow key={product.id}>
+                        <TableCell className="font-medium">
+                          {product.sku}
+                        </TableCell>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell>
+                          {formatCurrency(product.suggested_price)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {getEarningLabel(
+                              product.earning_mode,
+                              product.earning_percent,
+                              product.earning_fee_amount,
+                            )}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={stockAlertBadge[stockAlert].variant}
+                            title={stockAlertBadge[stockAlert].label}
+                          >
+                            {product.stock} unid.
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge
+                            status={productStatusBadge[product.status]}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link
+                                to={`/purchases/new?productId=${product.id}`}
+                              >
+                                Comprar
+                              </Link>
+                            </Button>
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link to={`/products/${product.id}`}>Editar</Link>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              <Pagination total={data.meta.total} limit={limit} />
+            </>
           )}
         </CardContent>
       </Card>
