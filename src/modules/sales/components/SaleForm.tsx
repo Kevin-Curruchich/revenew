@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/shared/DatePicker";
 import {
   Select,
   SelectContent,
@@ -71,7 +72,6 @@ export const SaleForm = ({
   });
   const {
     control,
-    register,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -148,12 +148,19 @@ export const SaleForm = ({
                   htmlFor="saleDate"
                   error={errors.saleDate?.message}
                 >
-                  <Input
-                    id="saleDate"
-                    type="date"
-                    disabled={isEditing}
-                    aria-invalid={!!errors.saleDate}
-                    {...register("saleDate")}
+                  <Controller
+                    control={control}
+                    name="saleDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        id="saleDate"
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={isEditing}
+                        aria-invalid={!!errors.saleDate}
+                        className="sm:w-full"
+                      />
+                    )}
                   />
                 </FormField>
               </CardContent>

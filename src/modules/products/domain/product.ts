@@ -22,12 +22,14 @@ export interface Product {
   should_reorder?: boolean;
 }
 
+/** A confirmed purchase lot that still has units left (FIFO order). */
 export interface ProductLot {
   purchase_item_id: string;
   purchase_id: string;
   purchase_date: string;
+  // Decimals are serialized as strings by the API.
   unit_cost: string;
-  remaining_quantity: number;
+  remaining_quantity: string;
   suggested_unit_price: string;
 }
 

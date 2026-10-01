@@ -6,7 +6,6 @@ import type {
   ProductStatus,
   StockAlertStatus,
 } from "../domain/product";
-import type { StockMovement } from "../domain/stock-movement";
 
 export const productStatusBadge: Record<ProductStatus, StatusBadgeInfo> = {
   active: { label: "Activo", variant: "default" },
@@ -34,15 +33,3 @@ export const getEarningLabel = (
   percent: number | string,
   feeAmount: number | string,
 ) => (mode === "percent" ? `${Number(percent)}%` : formatCurrency(feeAmount));
-
-const movementBadges: Record<string, StatusBadgeInfo> = {
-  purchase: { label: "Compra", variant: "default" },
-  sale: { label: "Venta", variant: "destructive" },
-  adjustment: { label: "Ajuste", variant: "secondary" },
-  initial_stock: { label: "Stock inicial", variant: "outline" },
-};
-
-export const getMovementBadge = (
-  type: StockMovement["movement_type"],
-): StatusBadgeInfo =>
-  movementBadges[type] ?? { label: type, variant: "outline" };

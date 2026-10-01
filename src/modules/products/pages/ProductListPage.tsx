@@ -34,6 +34,7 @@ import {
   productStatusBadge,
   stockAlertBadge,
 } from "../helpers/product-labels";
+import { ProductLotsDialog } from "../components/ProductLotsDialog";
 import { useProducts } from "../hooks/useProducts";
 
 const PAGE_SIZE = 10;
@@ -143,6 +144,10 @@ export const ProductListPage = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <ProductLotsDialog
+                              productId={product.id}
+                              productName={product.name}
+                            />
                             <Button variant="outline" size="sm" asChild>
                               <Link
                                 to={`/purchases/new?productId=${product.id}`}

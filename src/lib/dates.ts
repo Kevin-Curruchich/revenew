@@ -29,3 +29,52 @@ export const startOfMonth = (date: Date): Date =>
 
 export const endOfMonth = (date: Date): Date =>
   dayjs(date).endOf("month").toDate();
+
+const monthShortFormatter = new Intl.DateTimeFormat("es-GT", {
+  month: "short",
+});
+
+/** Month name for calendar dropdowns: "sept". */
+export const formatMonthShort = (date: Date): string =>
+  monthShortFormatter.format(date);
+
+const shortDateFormatter = new Intl.DateTimeFormat("es-GT", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+/** `2026-09-30` -> "30 sept 2026". Empty string for missing/invalid input. */
+export const formatShortDate = (value: string | null | undefined): string => {
+  const date = parseISODate(value);
+  return date ? shortDateFormatter.format(date) : "";
+};
+
+export interface ISODateRange {
+  start: string;
+  end: string;
+}
+
+/** Quick ranges offered by date range pickers, relative to `today`. */
+export const dateRangePresets = (today: Date = new Date()) => {
+  const day = dayjs(today);
+  const lastMonth = day.subtract(1, "month");
+  return [
+    { label: "Hoy", start: toISODate(today), end: toISODate(today) },
+    {
+      label: "Últimos 7 días",
+      start: toISODate(day.subtract(6, "day").toDate()),
+      end: toISODate(today),
+    },
+    {
+      label: "Este mes",
+      start: toISODate(startOfMonth(today)),
+      end: toISODate(today),
+    },
+    {
+      label: "Mes pasado",
+      start: toISODate(lastMonth.startOf("month").toDate()),
+      end: toISODate(lastMonth.endOf("month").toDate()),
+    },
+  ];
+};

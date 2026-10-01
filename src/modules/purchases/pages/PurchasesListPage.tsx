@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -25,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DateRangePicker } from "@/components/shared/DateRangePicker";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Pagination } from "@/components/shared/Pagination";
 import {
@@ -85,7 +85,7 @@ export const PurchasesListPage = () => {
           <CardDescription>
             Compras registradas para reposición y control de inventario
           </CardDescription>
-          <div className="grid grid-cols-1 gap-4 pt-4 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 pt-4 lg:grid-cols-3">
             <SearchInput
               defaultValue={supplierName}
               onSearch={(value) => setParams({ supplier: value })}
@@ -110,21 +110,13 @@ export const PurchasesListPage = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Input
-              type="date"
-              aria-label="Fecha inicio"
-              value={startDate}
-              max={endDate || undefined}
-              onChange={(event) =>
-                setParams({ start_date: event.target.value })
+            <DateRangePicker
+              start={startDate}
+              end={endDate}
+              onChange={({ start, end }) =>
+                setParams({ start_date: start, end_date: end })
               }
-            />
-            <Input
-              type="date"
-              aria-label="Fecha fin"
-              value={endDate}
-              min={startDate || undefined}
-              onChange={(event) => setParams({ end_date: event.target.value })}
+              className="sm:w-full"
             />
           </div>
         </CardHeader>

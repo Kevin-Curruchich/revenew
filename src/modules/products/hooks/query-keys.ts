@@ -1,6 +1,5 @@
 import type { GetProductsParams } from "../actions/get-products";
 import type { GetProductsForSaleParams } from "../actions/get-products-for-sale";
-import type { GetStockMovementsParams } from "../actions/get-stock-movements";
 
 /**
  * Everything product related lives under `["products"]`, so any change to
@@ -14,6 +13,5 @@ export const productKeys = {
   forSale: (params: GetProductsForSaleParams) =>
     [...productKeys.all, "for-sale", params] as const,
   detail: (id: string) => [...productKeys.all, "detail", id] as const,
-  stockMovements: (id: string, params: GetStockMovementsParams) =>
-    [...productKeys.detail(id), "stock-movements", params] as const,
+  lots: (id: string) => [...productKeys.detail(id), "lots"] as const,
 };

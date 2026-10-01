@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -16,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DateRangePicker } from "@/components/shared/DateRangePicker";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Pagination } from "@/components/shared/Pagination";
 import {
@@ -82,7 +82,10 @@ export const CashPage = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Caja" description="Movimientos de efectivo del negocio" />
+      <PageHeader
+        title="Caja"
+        description="Movimientos de efectivo del negocio"
+      />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <StatCard
@@ -101,27 +104,13 @@ export const CashPage = () => {
         <CardHeader>
           <CardTitle>Movimientos</CardTitle>
           <CardDescription>Del más reciente al más antiguo</CardDescription>
-          <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:items-center">
-            <Input
-              type="date"
-              className="w-full sm:w-auto"
-              value={startDate}
-              max={endDate || undefined}
-              onChange={(event) =>
-                setParams({ start_date: event.target.value })
+          <div className="pt-4">
+            <DateRangePicker
+              start={startDate}
+              end={endDate}
+              onChange={({ start, end }) =>
+                setParams({ start_date: start, end_date: end })
               }
-              aria-label="Fecha inicio"
-            />
-            <span className="hidden shrink-0 text-sm text-muted-foreground sm:inline">
-              —
-            </span>
-            <Input
-              type="date"
-              className="w-full sm:w-auto"
-              value={endDate}
-              min={startDate || undefined}
-              onChange={(event) => setParams({ end_date: event.target.value })}
-              aria-label="Fecha fin"
             />
           </div>
         </CardHeader>
