@@ -2,6 +2,7 @@ import { Bot, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatItem } from "../domain/conversation";
 import { getToolLabel } from "../domain/labels";
+import { AgentMarkdown } from "./AgentMarkdown";
 
 const ToolChip = ({ name }: { name: string }) => (
   <div className="flex justify-start">
@@ -26,17 +27,19 @@ const Bubble = ({ item }: { item: Extract<ChatItem, { text: string }> }) => {
       ) : null}
       <div
         className={cn(
-          "max-w-[85%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words",
+          "rounded-2xl px-4 py-2 text-sm",
           isUser
-            ? "rounded-br-sm bg-primary text-primary-foreground"
-            : "rounded-bl-sm bg-muted",
+            ? "max-w-[85%] rounded-br-sm bg-primary text-primary-foreground whitespace-pre-wrap break-words"
+            : "max-w-[92%] min-w-0 rounded-bl-sm bg-muted",
         )}
       >
-        {item.text}
+        {/* What the person typed is shown verbatim; the agent's answers
+            are markdown. */}
+        {isUser ? item.text : <AgentMarkdown text={item.text} />}
         {item.kind === "assistant" && item.streaming ? (
           <span
             aria-hidden="true"
-            className="ml-0.5 inline-block h-4 w-1.5 animate-pulse bg-current align-text-bottom"
+            className="mt-1 block h-4 w-1.5 animate-pulse bg-current"
           />
         ) : null}
       </div>
