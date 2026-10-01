@@ -13,6 +13,7 @@ const navItems = [
   { path: "/purchases", label: "Compras", icon: "🛒" },
   { path: "/customers", label: "Clientes", icon: "👥" },
   { path: "/sales", label: "Ventas", icon: "💰" },
+  { path: "/cash", label: "Caja", icon: "💵" },
   { path: "/follow-up", label: "Seguimiento", icon: "📋" },
   { path: "/calendar", label: "Calendario", icon: "📅" },
 ];
