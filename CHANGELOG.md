@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.8.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.7.0...v0.8.0) (2026-10-01)
+
+
+### Features
+
+* **agent:** render the agent's answers as markdown ([d202ab1](https://github.com/Kevin-Curruchich/revenew/commit/d202ab1250e5e93aa76d354fc0d6f0a992cb26ed))
+
 ## [0.7.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.6.1...v0.7.0) (2026-09-30)
 
 
