@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.10.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.9.1...v0.10.0) (2026-10-01)
+
+
+### Features
+
+* **sales:** filter sales list by product and payment status ([127aad2](https://github.com/Kevin-Curruchich/revenew/commit/127aad279ec838d92afe535d909063aa517b2b1e))
+
 ### [0.9.1](https://github.com/Kevin-Curruchich/revenew/compare/v0.9.0...v0.9.1) (2026-10-01)
 
 ## [0.9.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.8.0...v0.9.0) (2026-10-01)
