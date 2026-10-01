@@ -1,9 +1,13 @@
 name: Deploy Firebase Hosting
 
 on:
-  push:
-    tags:
-      - "*"
+  # Produccion se despliega desde release.yml en cada merge a main.
+  workflow_call:
+    inputs:
+      ref:
+        description: Tag o commit a desplegar
+        required: true
+        type: string
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
@@ -17,16 +21,18 @@ jobs:
   deploy:
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      format('{0}', inputs.ref) != '' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy'))
     runs-on: ubuntu-latest
     environment: production
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || '' }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -40,7 +46,7 @@ jobs:
       - name: Resolve deploy metadata
         run: |
           APP_VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version)")
-          SHORT_SHA="${GITHUB_SHA::7}"
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
           MANUAL_MESSAGE="${{ github.event.inputs.release_message || '' }}"
 
           if [ -n "$MANUAL_MESSAGE" ]; then
@@ -78,19 +84,3 @@ jobs:
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: firebase deploy --only hosting --project "$FIREBASE_PROJECT_ID" --message "$DEPLOY_MESSAGE" --non-interactive
 
-      - name: Create or update GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG_NAME="v${APP_VERSION}"
-          RELEASE_TITLE="${TAG_NAME}"
-          RELEASE_NOTES="${DEPLOY_MESSAGE}"
-
-          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
-            gh release edit "$TAG_NAME" --title "$RELEASE_TITLE" --notes "$RELEASE_NOTES"
-          else
-            gh release create "$TAG_NAME" \
-              --target "$GITHUB_SHA" \
-              --title "$RELEASE_TITLE" \
-              --notes "$RELEASE_NOTES"
-          fi
