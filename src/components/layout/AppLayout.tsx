@@ -42,6 +42,7 @@ const navItems = [
   { path: "/customers", label: "Clientes", icon: "👥" },
   { path: "/sales", label: "Ventas", icon: "💰" },
   { path: "/cash", label: "Caja", icon: "💵" },
+  { path: "/profit", label: "Ganancias", icon: "📈" },
   { path: "/follow-up", label: "Seguimiento", icon: "📋" },
   { path: "/calendar", label: "Calendario", icon: "📅" },
 ];

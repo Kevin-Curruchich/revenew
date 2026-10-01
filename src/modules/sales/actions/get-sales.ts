@@ -2,7 +2,12 @@ import { revenewApi } from "@/api/revenewApi";
 import type { PaginatedResponse, PaginationParams } from "@/lib/api-types";
 import type { Sale } from "../domain/sale";
 
-export type SalesResponse = PaginatedResponse<Sale>;
+export type SalesResponse = PaginatedResponse<Sale> & {
+  meta: {
+    /** Sum of `total` over every sale matching the filters (decimal string). */
+    total_amount?: string;
+  };
+};
 
 export interface GetSalesParams extends PaginationParams {
   customer?: string;

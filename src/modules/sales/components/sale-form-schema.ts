@@ -45,6 +45,10 @@ export const saleFormSchema = z
     customerId: z.string().min(1, "El cliente es requerido"),
     saleDate: z.string().min(1, "La fecha es requerida"),
     items: z.array(saleItemSchema).min(1, "Agrega al menos un producto"),
+    // Only sent when creating; an existing sale changes its payment status
+    // through PaymentStatusControl.
+    paymentStatus: z.enum(["paid", "pending"]),
+    paymentMethod: z.enum(["efectivo", "transferencia"]),
   })
   .superRefine((value, ctx) => {
     value.items.forEach((item, index) => {
@@ -88,6 +92,8 @@ export const toSaleFormValues = (
       customerId: presetCustomerId,
       saleDate: todayISODate(),
       items: [emptySaleItem()],
+      paymentStatus: "paid",
+      paymentMethod: "efectivo",
     };
   }
 
@@ -108,10 +114,23 @@ export const toSaleFormValues = (
       isPriceOverridden: !!item.is_price_overridden,
       pricingExceptionReason: item.pricing_exception_reason ?? "",
     })),
+    paymentStatus: sale.is_payment_pending ? "pending" : "paid",
+    paymentMethod: "efectivo",
   };
 };
 
-export const toSalePayload = (values: SaleFormValues): SalePayload => ({
+export const toSalePayload = (
+  values: SaleFormValues,
+  { isEditing = false }: { isEditing?: boolean } = {},
+): SalePayload => ({
+  ...(isEditing
+    ? {}
+    : {
+        isPaymentPending: values.paymentStatus === "pending",
+        // A pending sale has no payment yet, so no payment method either.
+        medioPago:
+          values.paymentStatus === "paid" ? values.paymentMethod : undefined,
+      }),
   customerId: values.customerId,
   date: values.saleDate,
   items: values.items.map((item) => ({

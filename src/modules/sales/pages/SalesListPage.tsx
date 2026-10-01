@@ -100,6 +100,17 @@ export const SalesListPage = () => {
           <CardDescription>
             Todas las ventas registradas en el sistema
           </CardDescription>
+          {data?.meta.total_amount !== undefined ? (
+            <p className="text-sm">
+              <span className="text-muted-foreground">
+                {pluralize(data.meta.total, "venta")} ·{" "}
+                {paymentStatus === "true" ? "Por cobrar" : "Total"}:{" "}
+              </span>
+              <span className="font-semibold">
+                {formatCurrency(data.meta.total_amount)}
+              </span>
+            </p>
+          ) : null}
           <div className="flex flex-col flex-wrap gap-4 pt-4 sm:flex-row">
             <Select
               value={customerId || ALL_OPTION}
