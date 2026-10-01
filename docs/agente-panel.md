@@ -50,6 +50,15 @@ src/modules/agent/
 - **422**: bug del panel; se loguea y se muestra un error genérico.
 - **503**: "el asistente no está disponible", sin reintentos.
 
+## Formato de las respuestas
+
+El agente (Claude vía `ChatAnthropic`) no recibe instrucciones de formato en
+`app/agent/prompt.py`, y por defecto responde en Markdown estilo GitHub:
+negritas, listas, `código` en línea y tablas. `AgentMarkdown` lo renderiza con
+`react-markdown` + `remark-gfm`. El HTML crudo del texto **no** se renderiza
+(comportamiento por defecto de `react-markdown`), así que la salida del modelo
+no puede inyectar markup. Lo que escribe la persona se muestra tal cual.
+
 ## Decisiones de producto tomadas
 
 - Con una tarjeta abierta el input queda bloqueado; para cambiar de tema hay
