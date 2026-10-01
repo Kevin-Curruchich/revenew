@@ -19,6 +19,9 @@ export interface DashboardSummary {
   salesThisMonth: number;
   pendingFollowUps: number;
   upcomingPurchases7Days: number;
+  /** Receivables: sales still pending payment, any date. Decimal as string. */
+  pendingPaymentsTotal?: string;
+  pendingPaymentsCount?: number;
   recentSales: Sale[];
   priorityCustomers: PriorityCustomer[];
 }

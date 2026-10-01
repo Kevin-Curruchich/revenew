@@ -37,11 +37,21 @@ export const DashboardPage = () => {
     <div className="space-y-6">
       <PageHeader title="Dashboard" description="Resumen de tu negocio" />
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatCard label="Total Clientes" value={data.totalCustomers} />
         <StatCard
           label="Ventas Este Mes"
           value={formatCurrency(data.salesThisMonth)}
+        />
+        <StatCard
+          label="Por cobrar"
+          value={formatCurrency(data.pendingPaymentsTotal ?? 0)}
+          detail={pluralize(
+            data.pendingPaymentsCount ?? 0,
+            "venta pendiente",
+            "ventas pendientes",
+          )}
+          to="/sales?is_payment_pending=true"
         />
         <StatCard label="Seguimiento Pendiente" value={data.pendingFollowUps} />
         <StatCard
