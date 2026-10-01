@@ -1,10 +1,38 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/modules/auth";
+import { UserMenu } from "./UserMenu";
+
+const SIDEBAR_COLLAPSED_KEY = "revenew.sidebar-collapsed";
+
+// Storage can be unavailable (private mode, blocked site data); the sidebar
+// then just starts expanded and forgets the choice.
+const readSidebarCollapsed = () => {
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
+  } catch {
+    return false;
+  }
+};
+
+const useSidebarCollapsed = () => {
+  const [collapsed, setCollapsed] = useState(readSidebarCollapsed);
+  const toggle = () =>
+    setCollapsed((previous) => {
+      const next = !previous;
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+      } catch {
+        // Not persisted; the toggle still works for this session.
+      }
+      return next;
+    });
+  return { collapsed, toggle };
+};
 
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: "📊" },
@@ -22,25 +50,36 @@ interface NavLinksProps {
   onNavigate?: () => void;
   className?: string;
   itemClassName?: string;
+  /** Icons only; the label stays available to screen readers and as a tooltip. */
+  collapsed?: boolean;
 }
 
-const NavLinks = ({ onNavigate, className, itemClassName }: NavLinksProps) => (
-  <nav className={cn("flex flex-col gap-2 p-4", className)}>
+const NavLinks = ({
+  onNavigate,
+  className,
+  itemClassName,
+  collapsed = false,
+}: NavLinksProps) => (
+  <nav
+    className={cn("flex flex-col gap-2 p-4", collapsed && "px-2", className)}
+  >
     {navItems.map((item) => (
       <NavLink
         key={item.path}
         to={item.path}
         onClick={onNavigate}
+        title={collapsed ? item.label : undefined}
         className={({ isActive }) =>
           cn(
             buttonVariants({ variant: isActive ? "default" : "ghost" }),
-            "w-full justify-start",
+            "w-full",
+            collapsed ? "justify-center px-0" : "justify-start",
             itemClassName,
           )
         }
       >
         <span aria-hidden="true">{item.icon}</span>
-        {item.label}
+        <span className={cn(collapsed && "sr-only")}>{item.label}</span>
       </NavLink>
     ))}
   </nav>
@@ -50,6 +89,7 @@ export const AppLayout = () => {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const sidebar = useSidebarCollapsed();
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
@@ -76,18 +116,11 @@ export const AppLayout = () => {
             )}
           </Button>
 
-          <div className="hidden items-center gap-4 md:flex">
-            {user?.display_name ? (
-              <span className="text-sm text-muted-foreground">
-                {user.display_name}
-              </span>
-            ) : null}
-            {/* The auth guard redirects to /login once the session ends. */}
-            <Button variant="outline" size="sm" onClick={logout}>
-              <LogOut />
-              Cerrar Sesión
-            </Button>
-          </div>
+          {user ? (
+            <div className="hidden md:block">
+              <UserMenu user={user} onLogout={logout} />
+            </div>
+          ) : null}
         </div>
       </header>
 
@@ -98,7 +131,12 @@ export const AppLayout = () => {
               onNavigate={closeMobileMenu}
               itemClassName="h-auto py-4 text-lg"
             />
-            <div className="border-t border-border p-4">
+            <div className="space-y-3 border-t border-border p-4">
+              {user ? (
+                <div className="truncate text-sm text-muted-foreground">
+                  {user.display_name || user.email}
+                </div>
+              ) : null}
               <Button variant="outline" className="w-full" onClick={logout}>
                 <LogOut />
                 Cerrar Sesión
@@ -107,8 +145,34 @@ export const AppLayout = () => {
           </div>
         ) : null}
 
-        <aside className="sticky top-(--header-height) hidden min-h-[calc(100vh-var(--header-height))] w-64 self-start border-r border-border bg-card md:block">
-          <NavLinks />
+        <aside
+          className={cn(
+            "sticky top-(--header-height) hidden h-[calc(100vh-var(--header-height))] shrink-0 flex-col self-start overflow-y-auto border-r border-border bg-card transition-[width] duration-200 md:flex",
+            sidebar.collapsed ? "w-16" : "w-64",
+          )}
+        >
+          <NavLinks collapsed={sidebar.collapsed} />
+          <div
+            className={cn(
+              "mt-auto border-t border-border p-4",
+              sidebar.collapsed && "px-2",
+            )}
+          >
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full text-muted-foreground",
+                sidebar.collapsed ? "justify-center px-0" : "justify-start",
+              )}
+              onClick={sidebar.toggle}
+              aria-label={sidebar.collapsed ? "Expandir menú" : "Colapsar menú"}
+              aria-expanded={!sidebar.collapsed}
+              title={sidebar.collapsed ? "Expandir menú" : undefined}
+            >
+              {sidebar.collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+              {sidebar.collapsed ? null : "Colapsar menú"}
+            </Button>
+          </div>
         </aside>
 
         <main className="w-full flex-1 overflow-x-hidden p-4 md:p-8">
