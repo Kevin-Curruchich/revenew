@@ -155,6 +155,12 @@ export const appRouter = createBrowserRouter([
                 ],
               },
               {
+                path: "cash",
+                ...page(() =>
+                  import("@/modules/cash").then((m) => m.CashPage),
+                ),
+              },
+              {
                 path: "follow-up",
                 ...page(() =>
                   import("@/modules/follow-up").then((m) => m.FollowUpListPage),
