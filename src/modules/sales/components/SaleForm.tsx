@@ -79,6 +79,7 @@ export const SaleForm = ({
 
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
   const items = useWatch({ control, name: "items" });
+  const paymentStatus = useWatch({ control, name: "paymentStatus" });
   const total = (items ?? []).reduce(
     (sum, item) => sum + getItemSubtotal(item),
     0,
@@ -86,7 +87,7 @@ export const SaleForm = ({
 
   const submit = handleSubmit(async (values) => {
     try {
-      await onSubmit(toSalePayload(values));
+      await onSubmit(toSalePayload(values, { isEditing }));
     } catch (error) {
       setError("root", { message: getErrorMessage(error) });
     }
@@ -163,6 +164,70 @@ export const SaleForm = ({
                     )}
                   />
                 </FormField>
+
+                {isEditing ? null : (
+                  <>
+                    <FormField label="Estado del pago" htmlFor="paymentStatus">
+                      <Controller
+                        control={control}
+                        name="paymentStatus"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger
+                              id="paymentStatus"
+                              className="w-full"
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="paid">Pagada</SelectItem>
+                              <SelectItem value="pending">
+                                Pendiente de pago
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </FormField>
+
+                    {paymentStatus === "paid" ? (
+                      <FormField label="Medio de pago" htmlFor="paymentMethod">
+                        <Controller
+                          control={control}
+                          name="paymentMethod"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                id="paymentMethod"
+                                className="w-full"
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="efectivo">
+                                  Efectivo
+                                </SelectItem>
+                                <SelectItem value="transferencia">
+                                  Transferencia
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </FormField>
+                    ) : (
+                      <p className="self-end pb-2 text-sm text-muted-foreground">
+                        No entra a caja hasta marcarla como pagada.
+                      </p>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
 
