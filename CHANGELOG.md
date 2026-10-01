@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.12.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.11.0...v0.12.0) (2026-10-01)
+
+
+### Features
+
+* **layout:** collapsible sidebar and user menu pill ([2832a1f](https://github.com/Kevin-Curruchich/revenew/commit/2832a1f11de94f0f00f43721c4074236426ce039))
+* **products:** show stock lots from the product list ([9ee7fa9](https://github.com/Kevin-Curruchich/revenew/commit/9ee7fa9b03118b07e56ca5046b2d91a7e8ee8cdd))
+* **ui:** replace native date inputs with Spanish date pickers ([50ec689](https://github.com/Kevin-Curruchich/revenew/commit/50ec6898b8dd28c30e13c6dc6c86256cc5837ffb))
+
 ## [0.11.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.10.0...v0.11.0) (2026-10-01)
 
 
