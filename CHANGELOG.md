@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.13.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.12.0...v0.13.0) (2026-10-01)
+
+
+### Features
+
+* **sales:** add profit report page ([987830e](https://github.com/Kevin-Curruchich/revenew/commit/987830edff8e5059bafb6d44a802e9d44284f8c6))
+* **sales:** choose payment status and method when creating a sale ([694c051](https://github.com/Kevin-Curruchich/revenew/commit/694c051d16efaf0181126d575b00d8b051b6ebfd))
+* **sales:** show receivables on the dashboard and sales list ([a06124b](https://github.com/Kevin-Curruchich/revenew/commit/a06124baa3e3a5955967e50e2fa10346c5b40173))
+
 ## [0.12.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.11.0...v0.12.0) (2026-10-01)
 
 
