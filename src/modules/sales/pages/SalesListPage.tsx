@@ -36,17 +36,25 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useListSearchParams } from "@/hooks/useListSearchParams";
 import { formatCurrency, pluralize, shortId } from "@/lib/formatters";
 import { useCustomers } from "@/modules/customers/hooks/useCustomers";
+import { useProducts } from "@/modules/products/hooks/useProducts";
 import { getPaymentStatusBadge } from "../domain/sale";
 import { useSales } from "../hooks/useSales";
 
 const PAGE_SIZE = 10;
-const ALL_CUSTOMERS = "all";
-// TODO: replace with a searchable combobox once there are many customers.
+const ALL_OPTION = "all";
+// TODO: replace with a searchable combobox once there are many customers/products.
 const CUSTOMER_OPTIONS_LIMIT = 200;
+const PRODUCT_OPTIONS_LIMIT = 200;
+const PAYMENT_STATUS_OPTIONS = [
+  { value: "true", label: "Pendientes de pago" },
+  { value: "false", label: "Pagadas" },
+];
 
 export const SalesListPage = () => {
   const { offset, limit, getParam, setParams } = useListSearchParams(PAGE_SIZE);
   const customerId = getParam("customer_id");
+  const productId = getParam("product_id");
+  const paymentStatus = getParam("is_payment_pending");
   const startDate = getParam("start_date");
   const endDate = getParam("end_date");
 
@@ -54,14 +62,25 @@ export const SalesListPage = () => {
     offset,
     limit,
     customer_id: customerId,
+    product_id: productId,
+    is_payment_pending: paymentStatus,
     start_date: startDate,
     end_date: endDate,
   });
   const { data: customersData } = useCustomers({
     limit: CUSTOMER_OPTIONS_LIMIT,
   });
+  const { data: productsData } = useProducts({
+    limit: PRODUCT_OPTIONS_LIMIT,
+  });
 
-  const hasFilters = !!(customerId || startDate || endDate);
+  const hasFilters = !!(
+    customerId ||
+    productId ||
+    paymentStatus ||
+    startDate ||
+    endDate
+  );
 
   return (
     <div className="space-y-6">
@@ -83,10 +102,10 @@ export const SalesListPage = () => {
           </CardDescription>
           <div className="flex flex-col flex-wrap gap-4 pt-4 sm:flex-row">
             <Select
-              value={customerId || ALL_CUSTOMERS}
+              value={customerId || ALL_OPTION}
               onValueChange={(value) =>
                 setParams({
-                  customer_id: value === ALL_CUSTOMERS ? null : value,
+                  customer_id: value === ALL_OPTION ? null : value,
                 })
               }
             >
@@ -97,13 +116,59 @@ export const SalesListPage = () => {
                 <SelectValue placeholder="Filtrar por cliente" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL_CUSTOMERS}>
+                <SelectItem value={ALL_OPTION}>
                   Todos los clientes
                 </SelectItem>
                 {customersData?.data.map((customer) => (
                   <SelectItem key={customer.id} value={customer.id}>
                     {customer.name}
                     {customer.company ? ` · ${customer.company}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={productId || ALL_OPTION}
+              onValueChange={(value) =>
+                setParams({
+                  product_id: value === ALL_OPTION ? null : value,
+                })
+              }
+            >
+              <SelectTrigger
+                className="w-full sm:w-56"
+                aria-label="Filtrar por producto"
+              >
+                <SelectValue placeholder="Filtrar por producto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_OPTION}>Todos los productos</SelectItem>
+                {productsData?.data.map((product) => (
+                  <SelectItem key={product.id} value={product.id}>
+                    {product.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={paymentStatus || ALL_OPTION}
+              onValueChange={(value) =>
+                setParams({
+                  is_payment_pending: value === ALL_OPTION ? null : value,
+                })
+              }
+            >
+              <SelectTrigger
+                className="w-full sm:w-48"
+                aria-label="Filtrar por estado de pago"
+              >
+                <SelectValue placeholder="Estado de pago" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_OPTION}>Todos los estados</SelectItem>
+                {PAYMENT_STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
