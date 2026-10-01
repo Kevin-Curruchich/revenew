@@ -14,7 +14,7 @@ import { ErrorState, LoadingState } from "@/components/shared/QueryStates";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import type { ProductPayload } from "../actions/create-product";
 import { ProductForm } from "../components/ProductForm";
-import { StockMovementsCard } from "../components/StockMovementsCard";
+import { ProductLotsTable } from "../components/ProductLotsTable";
 import { stockAlertBadge } from "../helpers/product-labels";
 import {
   useCreateProduct,
@@ -111,7 +111,20 @@ export const ProductFormPage = () => {
         </CardContent>
       </Card>
 
-      {id ? <StockMovementsCard productId={id} /> : null}
+      {id ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Lotes de Stock</CardTitle>
+            <CardDescription>
+              Del más antiguo al más reciente: cada venta toma primero del lote
+              de arriba
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProductLotsTable productId={id} />
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 };
