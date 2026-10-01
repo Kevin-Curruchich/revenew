@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -25,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DateRangePicker } from "@/components/shared/DateRangePicker";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Pagination } from "@/components/shared/Pagination";
 import {
@@ -116,9 +116,7 @@ export const SalesListPage = () => {
                 <SelectValue placeholder="Filtrar por cliente" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL_OPTION}>
-                  Todos los clientes
-                </SelectItem>
+                <SelectItem value={ALL_OPTION}>Todos los clientes</SelectItem>
                 {customersData?.data.map((customer) => (
                   <SelectItem key={customer.id} value={customer.id}>
                     {customer.name}
@@ -173,29 +171,13 @@ export const SalesListPage = () => {
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-2">
-              <Input
-                type="date"
-                className="w-full sm:w-auto"
-                value={startDate}
-                max={endDate || undefined}
-                onChange={(event) =>
-                  setParams({ start_date: event.target.value })
-                }
-                aria-label="Fecha inicio"
-              />
-              <span className="shrink-0 text-sm text-muted-foreground">—</span>
-              <Input
-                type="date"
-                className="w-full sm:w-auto"
-                value={endDate}
-                min={startDate || undefined}
-                onChange={(event) =>
-                  setParams({ end_date: event.target.value })
-                }
-                aria-label="Fecha fin"
-              />
-            </div>
+            <DateRangePicker
+              start={startDate}
+              end={endDate}
+              onChange={({ start, end }) =>
+                setParams({ start_date: start, end_date: end })
+              }
+            />
           </div>
         </CardHeader>
         <CardContent>

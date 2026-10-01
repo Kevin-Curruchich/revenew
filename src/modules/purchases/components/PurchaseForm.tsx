@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import {
+  Controller,
   FormProvider,
   useFieldArray,
   useForm,
@@ -17,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/shared/DatePicker";
 import { FieldError, FormField } from "@/components/shared/FormField";
 import { FormErrorAlert } from "@/components/shared/FormErrorAlert";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -116,11 +118,18 @@ export const PurchaseForm = ({
                   htmlFor="purchaseDate"
                   error={errors.purchaseDate?.message}
                 >
-                  <Input
-                    id="purchaseDate"
-                    type="date"
-                    aria-invalid={!!errors.purchaseDate}
-                    {...register("purchaseDate")}
+                  <Controller
+                    control={control}
+                    name="purchaseDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        id="purchaseDate"
+                        value={field.value}
+                        onChange={field.onChange}
+                        aria-invalid={!!errors.purchaseDate}
+                        className="sm:w-full"
+                      />
+                    )}
                   />
                 </FormField>
               </CardContent>

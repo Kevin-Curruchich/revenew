@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FieldError } from "@/components/shared/FormField";
+import { DatePicker } from "@/components/shared/DatePicker";
 import { FormErrorAlert } from "@/components/shared/FormErrorAlert";
 import { formatCurrency } from "@/lib/formatters";
 import type { CashMovementConfirmation } from "../../domain/agent";
@@ -128,7 +129,19 @@ const CashMovementCorrectionForm = ({
         </label>
         <label className="space-y-1 text-xs">
           Fecha
-          <Input type="date" {...register("fecha")} />
+          <Controller
+            control={control}
+            name="fecha"
+            render={({ field }) => (
+              <DatePicker
+                value={field.value}
+                onChange={field.onChange}
+                aria-label="Fecha"
+                aria-invalid={!!errors.fecha}
+                className="sm:w-full"
+              />
+            )}
+          />
           <FieldError message={errors.fecha?.message} />
         </label>
         <div className="col-span-2 space-y-1 text-xs">
