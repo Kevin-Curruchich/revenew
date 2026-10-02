@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.15.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.14.0...v0.15.0) (2026-10-02)
+
+
+### Features
+
+* **agent:** composer nodes, document helpers and menu controller ([dfdb52c](https://github.com/Kevin-Curruchich/revenew/commit/dfdb52cca9741918a925fd9c681590c50e30d50d))
+* **agent:** composer templates and message serialization ([bec68f8](https://github.com/Kevin-Curruchich/revenew/commit/bec68f882c4d433921f144c2936da3ff2ddd46a4))
+* **agent:** mention types and splitMentions ([4c6ecfc](https://github.com/Kevin-Curruchich/revenew/commit/4c6ecfc6e63461026adc0e0659787d40c10ec3ff))
+* **agent:** rich composer with @ mentions and / commands ([ad2b143](https://github.com/Kevin-Curruchich/revenew/commit/ad2b143e178108bf3296b6b2e56bba97c96108a6))
+* **agent:** search customers, products and pending sales for mentions ([29e25a3](https://github.com/Kevin-Curruchich/revenew/commit/29e25a3f1386dbf98a10f2a8a66a2de6cc9089db))
+* **agent:** send and restore command and mentions with user messages ([8c322c7](https://github.com/Kevin-Curruchich/revenew/commit/8c322c7cdc80adb7874efd82b43868e551d2c0c3))
+* **agent:** show mentions and command in user messages ([a3bf00d](https://github.com/Kevin-Curruchich/revenew/commit/a3bf00dca14b892274f5260ed6bd49ae6474aa63))
+* **agent:** template slots, item rows and slot pickers ([cb9f42f](https://github.com/Kevin-Curruchich/revenew/commit/cb9f42fac7a5c0478e5f8b1f69c42d20d9033f47))
+
+
+### Bug Fixes
+
+* **agent:** add the space after a mention only when nothing separates it ([501f770](https://github.com/Kevin-Curruchich/revenew/commit/501f7708ab4c867876536abb3eec16bf2ffea10e))
+* **agent:** close slot lists on leave and keep selection on restore ([3d82583](https://github.com/Kevin-Curruchich/revenew/commit/3d82583ae4b90301b7b24b728038d29ef57ce80f))
+* **agent:** don't send a command template left unfilled ([2d22962](https://github.com/Kevin-Curruchich/revenew/commit/2d229624a74c555acca38a4743480d5d13eaca54))
+* **agent:** let Tab skip an untouched picker slot ([47e534c](https://github.com/Kevin-Curruchich/revenew/commit/47e534c6b0bb154bfc16dd198b134b57010dfaa3))
+* **agent:** show "Buscando…" while a list loads ([ef5e291](https://github.com/Kevin-Curruchich/revenew/commit/ef5e291482935592b9a2d5a456386be2912f2223))
+* **agent:** show the disabled composer as disabled ([f63338b](https://github.com/Kevin-Curruchich/revenew/commit/f63338bb7d5d1077554401aa001306a4fbf7868f))
+* **agent:** stay after a chosen product so "," can add a row ([46138b2](https://github.com/Kevin-Curruchich/revenew/commit/46138b2b45fc3bdee893ab292c149868e0328cf4))
+* **agent:** undo/redo, ", " rows, safe restore and unknown history values ([1ee9a3f](https://github.com/Kevin-Curruchich/revenew/commit/1ee9a3f3f48a545db3a46a6e0b68a65227ab887c))
+
 ## [0.14.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.13.0...v0.14.0) (2026-10-02)
 
 
