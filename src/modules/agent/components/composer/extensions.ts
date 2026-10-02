@@ -317,6 +317,8 @@ export const SlotBehavior = Extension.create<SlotBehaviorOptions, SlotBehaviorSt
   onSelectionUpdate() {
     const { editor, storage } = this;
     const { menu } = this.options;
+    // A disabled composer opens no lists and turns no slot into "@".
+    if (!editor.isEditable) return;
     const { selection } = editor.state;
     const suggestions = (editor.storage as unknown as { composerSuggestions: ComposerSuggestionsStorage }).composerSuggestions;
     const node = selection instanceof NodeSelection ? selection.node : null;

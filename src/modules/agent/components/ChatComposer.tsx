@@ -52,11 +52,7 @@ export const ChatComposer = ({ onSend, disabledReason }: ChatComposerProps) => {
       {disabledReason ? <p className="text-xs text-muted-foreground">{disabledReason}</p> : null}
       <div className="relative flex items-end gap-2">
         <ComposerMenu menu={menu} />
-        <EditorContent
-          editor={editor}
-          className="min-w-0 flex-1"
-          aria-disabled={disabledReason !== null || undefined}
-        />
+        <EditorContent editor={editor} className="min-w-0 flex-1" />
         <Button type="submit" size="icon" disabled={isDisabled || !hasText} aria-label="Enviar mensaje">
           <SendHorizontal />
         </Button>

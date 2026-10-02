@@ -10,8 +10,10 @@ import type { MentionFilter } from "../../domain/mention-options";
 import { composerNodes, ComposerKeys, ComposerSuggestions, SlotBehavior } from "./extensions";
 import { MenuController } from "./menu-controller";
 
+// ProseMirror sets contenteditable="false" while the editor is not editable
+// (ChatComposer ties that to `disabledReason`): that is the disabled look.
 const EDITOR_CLASS =
-  "border-input focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 max-h-40 min-h-10 w-full overflow-y-auto rounded-md border bg-transparent px-3 py-2 text-base whitespace-pre-wrap break-words shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] aria-disabled:cursor-not-allowed aria-disabled:opacity-50 md:text-sm";
+  "border-input focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 max-h-40 min-h-10 w-full overflow-y-auto rounded-md border bg-transparent px-3 py-2 text-base whitespace-pre-wrap break-words shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] [&[contenteditable=false]]:cursor-not-allowed [&[contenteditable=false]]:opacity-50 md:text-sm";
 
 interface UseComposerEditorOptions {
   /** Called on Enter (outside a list). Read through a ref by the caller. */
