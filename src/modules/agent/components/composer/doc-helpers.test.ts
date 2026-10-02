@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { getSchema, type JSONContent } from "@tiptap/core";
 import { composerNodes } from "./extensions";
-import { findCustomerMention, findSlotPos, getCommand, productBefore } from "./doc-helpers";
+import { findCustomerMention, findSlotPos, getCommand, needsSpaceAfter, productBefore } from "./doc-helpers";
 import { buildTemplate } from "./templates";
 
 const schema = getSchema(composerNodes);
@@ -67,5 +67,20 @@ describe("productBefore", () => {
   it("ignores customers and plain text", () => {
     const doc = toDoc([{ type: "mention", attrs: { tipo: "cliente", id: "c1", nombre: "A" } }, { type: "text", text: "x" }]);
     expect(productBefore(doc.resolve(doc.content.size - 1))).toBeNull();
+  });
+});
+
+describe("needsSpaceAfter", () => {
+  it("adds a space at the end of the line or before a word or a chip", () => {
+    expect(needsSpaceAfter("")).toBe(true);
+    expect(needsSpaceAfter("hola")).toBe(true);
+    expect(needsSpaceAfter("\uFFFC")).toBe(true);
+  });
+
+  it("skips it before a space or punctuation the template already has", () => {
+    expect(needsSpaceAfter(" a ")).toBe(false);
+    expect(needsSpaceAfter(", ")).toBe(false);
+    expect(needsSpaceAfter(".")).toBe(false);
+    expect(needsSpaceAfter("\n")).toBe(false);
   });
 });

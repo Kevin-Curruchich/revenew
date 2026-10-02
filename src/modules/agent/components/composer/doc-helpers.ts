@@ -54,3 +54,9 @@ export const productBefore = ($from: ResolvedPos): { from: number } | null => {
   }
   return null;
 };
+
+/**
+ * Whether a chosen mention needs a trailing space, given the text that
+ * follows it: not before a space or punctuation the template already has.
+ */
+export const needsSpaceAfter = (next: string): boolean => !/^[\s.,;:!?)]/.test(next);

@@ -11,7 +11,7 @@ import Suggestion from "@tiptap/suggestion";
 import { commandLabels } from "../../domain/labels";
 import type { MentionFilter, MentionOption } from "../../domain/mention-options";
 import { COMMANDS, type Comando } from "../../domain/mentions";
-import { findCustomerMention, findSlotPos, getCommand, productBefore } from "./doc-helpers";
+import { findCustomerMention, findSlotPos, getCommand, needsSpaceAfter, productBefore } from "./doc-helpers";
 import type { MenuController, MenuItem } from "./menu-controller";
 import { NODE, PICKER_SLOTS, SLOT_CHOICES, SLOT_PLACEHOLDERS, type SlotTipo } from "./schema";
 import { buildTemplate, itemRow } from "./templates";
@@ -244,10 +244,18 @@ export const ComposerSuggestions = Extension.create<ComposerSuggestionsOptions, 
           const fromSlot = storage.slotOrigin !== null;
           storage.slotFilter = null;
           storage.slotOrigin = null;
+          // The first character after the "@query" decides the trailing space;
+          // a line break reads as "\n", any other atom (slot, mention) as "￼",
+          // the end of the paragraph as "".
+          const { doc } = editor.state;
+          const next = doc.textBetween(range.to, Math.min(range.to + 1, doc.resolve(range.to).end()), null, (leaf) =>
+            leaf.type.name === "hardBreak" ? "\n" : "￼",
+          );
+          const mentionNode = { type: NODE.mention, attrs: { tipo, id, nombre } };
           editor
             .chain()
             .focus()
-            .insertContentAt(range, [{ type: NODE.mention, attrs: { tipo, id, nombre } }, { type: "text", text: " " }])
+            .insertContentAt(range, needsSpaceAfter(next) ? [mentionNode, { type: "text", text: " " }] : [mentionNode])
             .run();
           if (fromSlot) selectSlot(editor, range.from, "next");
         },

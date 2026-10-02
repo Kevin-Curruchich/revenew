@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { JSONContent } from "@tiptap/core";
+import { needsSpaceAfter } from "./doc-helpers";
 import { serializeMessage } from "./serialize";
+import { buildTemplate } from "./templates";
 
 const doc = (...content: JSONContent[]): JSONContent => ({
   type: "doc",
@@ -14,7 +16,38 @@ const mention = (tipo: string, id: string | null, nombre: string): JSONContent =
 const slot = (tipo: string): JSONContent => ({ type: "slot", attrs: { tipo, placeholder: tipo } });
 const chip = (comando: string): JSONContent => ({ type: "commandChip", attrs: { comando } });
 
+/**
+ * Fills a template the way the editor leaves it: a typed or chosen value
+ * replaces the slot, a chosen mention gets a space only when nothing
+ * separates it from what follows (see the mention command).
+ */
+const fillTemplate = (comando: "venta", values: Record<string, JSONContent>): JSONContent => {
+  const template = buildTemplate(comando);
+  const content = template.flatMap((node, index) => {
+    const value = node.type === "slot" ? values[node.attrs?.tipo] : node;
+    if (!value) return [node];
+    if (value.type !== "mention") return [value];
+    const next = template[index + 1];
+    const nextText = !next ? "" : next.type === "text" ? (next.text ?? "") : "\uFFFC";
+    return needsSpaceAfter(nextText) ? [value, text(" ")] : [value];
+  });
+  return doc(...content);
+};
+
 describe("serializeMessage", () => {
+  it("serializes a filled /venta template without double spaces", () => {
+    const result = serializeMessage(
+      fillTemplate("venta", {
+        cantidad: text("2"),
+        producto: mention("producto", "p1", "Cartón de huevos"),
+        cliente: mention("cliente", "c1", "Aurita"),
+        pagado: text("no pagado"),
+      }),
+    );
+    expect(result.mensaje).toBe("Vendí 2 @Cartón de huevos a @Aurita, no pagado");
+    expect(result.menciones?.map((m) => [m.inicio, m.fin])).toEqual([[8, 25], [28, 35]]);
+  });
+
   it("builds text, command and code-point ranges", () => {
     const result = serializeMessage(
       doc(chip("venta"), text(" Vendí 2 "), mention("producto", "p1", "Cartón de huevos"),
