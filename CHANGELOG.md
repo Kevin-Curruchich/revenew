@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.14.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.13.0...v0.14.0) (2026-10-02)
+
+
+### Features
+
+* **agent:** show the confirmar_cobro confirmation card ([986afc4](https://github.com/Kevin-Curruchich/revenew/commit/986afc48e01193a153395e8b11081caf0a3c1593))
+
 ## [0.13.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.12.0...v0.13.0) (2026-10-01)
 
 
