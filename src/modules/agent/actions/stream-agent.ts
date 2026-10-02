@@ -3,12 +3,18 @@ import { signOut } from "firebase/auth";
 import { API_BASE_URL } from "@/api/revenewApi";
 import { auth } from "@/lib/firebase";
 import type { AgentEvent, Decision } from "../domain/agent";
+import type { Comando, Mencion } from "../domain/mentions";
 import { createSseParser, toAgentEvent } from "../domain/sse-parser";
 
 const STREAM_URL = `${API_BASE_URL}/api/v1/agent/stream`;
 
 export type AgentStreamRequest =
-  | { thread_id: string; mensaje: string }
+  | {
+      thread_id: string;
+      mensaje: string;
+      comando?: Comando;
+      menciones?: Mencion[];
+    }
   // `interrupt_id` is a SIBLING of `decision`, never nested inside it.
   | { thread_id: string; interrupt_id: string; decision: Decision };
 

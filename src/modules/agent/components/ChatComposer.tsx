@@ -3,9 +3,10 @@ import { SendHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import type { OutgoingMessage } from "../domain/mentions";
 
 interface ChatComposerProps {
-  onSend: (text: string) => Promise<boolean>;
+  onSend: (message: OutgoingMessage) => Promise<boolean>;
   /** Why the input is blocked, or `null` when the person can write. */
   disabledReason: string | null;
 }
@@ -22,7 +23,7 @@ export const ChatComposer = ({ onSend, disabledReason }: ChatComposerProps) => {
 
     setIsSending(true);
     // Clear only once the server accepted it, so a rejected message isn't lost.
-    const accepted = await onSend(message);
+    const accepted = await onSend({ mensaje: message });
     if (accepted) setText("");
     setIsSending(false);
   };

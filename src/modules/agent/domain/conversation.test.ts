@@ -135,4 +135,38 @@ describe("conversationReducer", () => {
       }).items.map((item) => item.kind),
     ).toEqual(["user", "tool", "assistant"]);
   });
+
+  it("shows the sent message with its command and mentions", () => {
+    const menciones = [
+      { tipo: "cliente" as const, id: "c1", nombre: "Aurita", inicio: 9, fin: 16 },
+    ];
+    const state = conversationReducer(empty, {
+      type: "turn-open",
+      message: { mensaje: "Vendí a @Aurita", comando: "venta", menciones },
+    });
+    expect(state.items).toMatchObject([
+      { kind: "user", text: "Vendí a @Aurita", comando: "venta", menciones },
+    ]);
+  });
+
+  it("restores command and mentions from the saved state", () => {
+    const menciones = [
+      { tipo: "producto" as const, id: "p1", nombre: "Cartón", inicio: 0, fin: 7 },
+    ];
+    const state = fromThreadState({
+      mensajes: [{ rol: "usuario", texto: "@Cartón", comando: "compra", menciones }],
+      confirmaciones_pendientes: [],
+    });
+    expect(state.items).toMatchObject([
+      { kind: "user", text: "@Cartón", comando: "compra", menciones },
+    ]);
+  });
+
+  it("keeps old messages without mentions as plain text", () => {
+    const state = fromThreadState({
+      mensajes: [{ rol: "usuario", texto: "hola" }],
+      confirmaciones_pendientes: [],
+    });
+    expect(state.items[0]).toEqual({ id: "saved-0", kind: "user", text: "hola" });
+  });
 });
