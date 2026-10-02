@@ -153,7 +153,13 @@ interface ComposerSuggestionsStorage {
   slotOrigin: SlotTipo | null;
 }
 
-const MENTION_TITLES: Record<MentionFilter["kind"], string> = {
+interface ListProps {
+  items: MenuItem[];
+  loading: boolean;
+  command: (item: MenuItem) => void;
+}
+
+const MENTION_TITLES:Record<MentionFilter["kind"], string> = {
   any: "Mencionar",
   cliente: "Clientes",
   producto: "Productos",
@@ -178,11 +184,14 @@ export const ComposerSuggestions = Extension.create<ComposerSuggestionsOptions, 
     const storage = this.storage;
     const editor = this.editor;
 
+    // Tiptap calls onStart/onUpdate with no items and `loading` before each
+    // fetch: show a notice instead of flashing an empty list.
+    const show = (title: string, props: ListProps) =>
+      menu?.open(title, props.loading ? [{ kind: "notice", text: "Buscando…" }] : props.items, props.command);
+
     const render = (title: () => string) => () => ({
-      onStart: (props: { items: MenuItem[]; command: (item: MenuItem) => void }) =>
-        menu?.open(title(), props.items, props.command),
-      onUpdate: (props: { items: MenuItem[]; command: (item: MenuItem) => void }) =>
-        menu?.open(title(), props.items, props.command),
+      onStart: (props: ListProps) => show(title(), props),
+      onUpdate: (props: ListProps) => show(title(), props),
       onKeyDown: ({ view, event, range }: { view: EditorView; event: KeyboardEvent; range: { from: number; to: number } }) => {
         // Let Shift+Tab / Shift+Enter through to the keyboard shortcuts.
         if (event.shiftKey && (event.key === "Tab" || event.key === "Enter")) return false;
