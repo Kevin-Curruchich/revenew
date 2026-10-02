@@ -34,11 +34,13 @@ export const UserMessageContent = ({
     <>
       {comando ? (
         <span className="mb-1 block text-xs font-semibold tracking-wide uppercase opacity-80">
-          {commandLabels[comando].label}
+          {/* A command this version doesn't know shows as it came. */}
+          {commandLabels[comando]?.label ?? comando}
         </span>
       ) : null}
       {segments.map((segment, index) =>
-        segment.kind === "text" ? (
+        // An unknown mention type has no page to link to: plain text.
+        segment.kind === "text" || !mentionHref[segment.mencion.tipo] ? (
           segment.text
         ) : (
           <Link

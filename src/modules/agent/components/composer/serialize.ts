@@ -33,6 +33,8 @@ export const serializeMessage = (doc: JSONContent): OutgoingMessage => {
         append(node.text ?? "");
         return;
       case "hardBreak":
+        // A message never starts with a line break.
+        if (out === "") return;
         out = out.replace(/ +$/, "");
         append("\n");
         return;

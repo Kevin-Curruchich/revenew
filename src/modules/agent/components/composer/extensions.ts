@@ -206,8 +206,10 @@ export const ComposerSuggestions = Extension.create<ComposerSuggestionsOptions, 
         const origin = storage.slotOrigin;
         storage.slotFilter = null;
         storage.slotOrigin = null;
-        // Nothing chosen and only "@" left: put the slot back.
-        if (origin && props.editor.state.doc.textBetween(props.range.from, props.range.to) === "@") {
+        // Nothing chosen and only "@" left: put the slot back. After
+        // clearContent the old range is past the end of the document.
+        const { doc } = props.editor.state;
+        if (origin && props.range.to <= doc.content.size && doc.textBetween(props.range.from, props.range.to) === "@") {
           props.editor
             .chain()
             .insertContentAt(
@@ -311,6 +313,8 @@ interface SlotBehaviorStorage {
   choiceOpen: boolean;
   /** Position of the choice slot that opened the list. */
   choicePos: number | null;
+  /** Set right after "," adds a row: the space of ", " must not fill its slot. */
+  swallowSpace: boolean;
 }
 
 /**
@@ -326,7 +330,7 @@ export const SlotBehavior = Extension.create<SlotBehaviorOptions, SlotBehaviorSt
     return { menu: null };
   },
   addStorage() {
-    return { choiceOpen: false, choicePos: null };
+    return { choiceOpen: false, choicePos: null, swallowSpace: false };
   },
   onSelectionUpdate() {
     const { editor, storage } = this;
@@ -337,6 +341,8 @@ export const SlotBehavior = Extension.create<SlotBehaviorOptions, SlotBehaviorSt
     const suggestions = (editor.storage as unknown as { composerSuggestions: ComposerSuggestionsStorage }).composerSuggestions;
     const node = selection instanceof NodeSelection ? selection.node : null;
     const tipo = node?.type.name === NODE.slot ? (node.attrs.tipo as SlotTipo) : null;
+    // Moving anywhere else means the ", " that added a row is over.
+    storage.swallowSpace = false;
 
     // Leaving the slot that opened a choice list closes it, before anything
     // else runs (a picker slot opens its own list). Never close one we didn't open.
@@ -403,13 +409,18 @@ export const SlotBehavior = Extension.create<SlotBehaviorOptions, SlotBehaviorSt
           },
           // ", " right after a product in /venta or /compra adds a row.
           handleTextInput: (view, from, to, text) => {
+            if (storage.swallowSpace) {
+              storage.swallowSpace = false;
+              if (text === " ") return true;
+            }
             if (text !== ",") return false;
             const comando = getCommand(view.state.doc);
             if (comando !== "venta" && comando !== "compra") return false;
             const target = productBefore(view.state.doc.resolve(from));
             if (!target || from !== to) return false;
             editor.chain().focus().insertContentAt({ from: target.from, to }, itemRow()).run();
-            selectSlot(editor, target.from, "next");
+            // After selectSlot: its own selection update clears the flag.
+            storage.swallowSpace = selectSlot(editor, target.from, "next");
             return true;
           },
         },

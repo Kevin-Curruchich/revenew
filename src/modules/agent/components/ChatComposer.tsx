@@ -38,7 +38,7 @@ export const ChatComposer = ({ onSend, disabledReason }: ChatComposerProps) => {
     setIsSending(true);
     // Clear only once the server accepted it, so a rejected message isn't lost.
     const accepted = await onSend(message);
-    if (accepted) editor.commands.clearContent(true);
+    if (accepted && !editor.isDestroyed) editor.commands.clearContent(true);
     setIsSending(false);
   };
 

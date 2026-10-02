@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEditor, type Editor } from "@tiptap/react";
-import { Placeholder } from "@tiptap/extensions";
+import { Placeholder, UndoRedo } from "@tiptap/extensions";
 
 import { debounceLatest } from "@/lib/debounce";
 import { searchMentions } from "../../actions/search-mentions";
@@ -31,6 +31,7 @@ export const useComposerEditor = ({ onSubmit, onChange }: UseComposerEditorOptio
   const editor = useEditor({
     extensions: [
       ...composerNodes,
+      UndoRedo,
       Placeholder.configure({ placeholder: "Ej. vendí dos cartones a Aurita · / comandos · @ mencionar" }),
       ComposerKeys.configure({ onSubmit }),
       ComposerSuggestions.configure({ menu, search }),

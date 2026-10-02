@@ -1,13 +1,13 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
-import type { Mencion } from "../domain/mentions";
+import type { Comando, Mencion } from "../domain/mentions";
 import { UserMessageContent } from "./UserMessageContent";
 
-const render = (text: string, menciones?: Mencion[], comando?: "venta") =>
+const render = (text: string, menciones?: Mencion[], comando?: string) =>
   renderToStaticMarkup(
     <MemoryRouter>
-      <UserMessageContent text={text} menciones={menciones} comando={comando} />
+      <UserMessageContent text={text} menciones={menciones} comando={comando as Comando | undefined} />
     </MemoryRouter>,
   );
 
@@ -38,5 +38,16 @@ describe("UserMessageContent", () => {
       { tipo: "cliente", id: "c1", nombre: "x", inicio: 3, fin: 99 },
     ]);
     expect(html).toBe("hola");
+  });
+
+  it("survives a command or mention type it doesn't know", () => {
+    const html = render(
+      "Fiado a @Aurita",
+      [{ tipo: "proveedor" as Mencion["tipo"], id: "x1", nombre: "Aurita", inicio: 8, fin: 15 }],
+      "fiado",
+    );
+    expect(html).toContain("fiado");
+    expect(html).toContain("@Aurita");
+    expect(html).not.toContain("href");
   });
 });

@@ -92,6 +92,12 @@ describe("serializeMessage", () => {
     });
   });
 
+  it("never starts with a line break", () => {
+    const hardBreak = { type: "hardBreak" };
+    expect(serializeMessage(doc(hardBreak, hardBreak, text("hola"))).mensaje).toBe("hola");
+    expect(serializeMessage(doc(chip("caja"), text(" "), hardBreak, text("entrada"))).mensaje).toBe("entrada");
+  });
+
   it("keeps line breaks", () => {
     expect(serializeMessage(doc(text("uno"), { type: "hardBreak" }, text("dos"))).mensaje).toBe("uno\ndos");
   });
