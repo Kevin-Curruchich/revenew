@@ -1,6 +1,6 @@
 # Composer enriquecido del agente: menciones y comandos
 
-Fecha: 2026-10-02 · Estado: diseño aprobado, pendiente de plan
+Fecha: 2026-10-02 · Estado: aprobado · Plan: `docs/superpowers/plans/2026-10-02-composer-enriquecido.md`
 
 ## Objetivo
 
@@ -19,7 +19,7 @@ con teclado y llega al agente con `comando` e ids, sin llamadas a
 
 ## Fuera de alcance
 
-- Tool `buscar_producto` en el backend (recomendada, se coordina aparte).
+- Tool `buscar_producto`: ya existe en el backend (ai-sales-assistant PR #9), así que el agente resuelve productos escritos sin `@`.
 - Datos extra del cliente en la lista (saldo pendiente): la v1 muestra solo el
   nombre.
 - Endpoints nuevos de listado: alcanza con los existentes (ver "Búsquedas").
@@ -72,8 +72,13 @@ El mensaje de usuario guarda y devuelve los campos nuevos:
 
 ### Orden de despliegue
 
-El backend se mergea **antes** que el panel. Si el backend viejo rechaza campos
-desconocidos, cada mensaje con menciones fallaría con 422.
+El backend (ai-sales-assistant PR #13) se despliega **antes** que el panel. El
+backend viejo ignora los campos desconocidos (`extra="ignore"`): si el panel
+llegara primero, los mensajes funcionan pero el agente no recibe los ids.
+
+El backend además responde 422 a un rango vacío, a un `id` que no es UUID y a
+`comando`/`menciones` sin `mensaje`; el panel nunca los produce. Devuelve los
+`id` normalizados a UUID en minúsculas.
 
 ## 2. Editor
 
