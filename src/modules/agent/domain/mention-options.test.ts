@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Customer } from "@/modules/customers/domain/customer";
 import type { ProductForSale } from "@/modules/products/domain/product";
 import type { Sale } from "@/modules/sales/domain/sale";
-import { toCustomerOption, toProductOption, toSaleOption } from "../domain/mention-options";
+import { toCustomerOption, toProductOption, toSaleOption } from "./mention-options";
 
 describe("mention options", () => {
   it("uses the customer name and company", () => {
