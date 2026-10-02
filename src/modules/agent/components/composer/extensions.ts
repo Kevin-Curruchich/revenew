@@ -5,6 +5,7 @@ import HardBreak from "@tiptap/extension-hard-break";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import { NodeSelection, Plugin, PluginKey } from "@tiptap/pm/state";
+import type { EditorView } from "@tiptap/pm/view";
 import Suggestion from "@tiptap/suggestion";
 
 import { commandLabels } from "../../domain/labels";
@@ -182,9 +183,13 @@ export const ComposerSuggestions = Extension.create<ComposerSuggestionsOptions, 
         menu?.open(title(), props.items, props.command),
       onUpdate: (props: { items: MenuItem[]; command: (item: MenuItem) => void }) =>
         menu?.open(title(), props.items, props.command),
-      onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+      onKeyDown: ({ view, event, range }: { view: EditorView; event: KeyboardEvent; range: { from: number; to: number } }) => {
         // Let Shift+Tab / Shift+Enter through to the keyboard shortcuts.
         if (event.shiftKey && (event.key === "Tab" || event.key === "Enter")) return false;
+        // Tab on a slot's untouched "@" skips the slot (onExit puts it back).
+        if (event.key === "Tab" && storage.slotOrigin && view.state.doc.textBetween(range.from, range.to) === "@") {
+          return false;
+        }
         return menu?.handleKey(event.key) ?? false;
       },
       onExit: (props: { range: { from: number; to: number }; editor: Editor }) => {
