@@ -4,16 +4,16 @@ import Document from "@tiptap/extension-document";
 import HardBreak from "@tiptap/extension-hard-break";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
-import { NodeSelection, PluginKey } from "@tiptap/pm/state";
+import { NodeSelection, Plugin, PluginKey } from "@tiptap/pm/state";
 import Suggestion from "@tiptap/suggestion";
 
 import { commandLabels } from "../../domain/labels";
 import type { MentionFilter, MentionOption } from "../../domain/mention-options";
 import { COMMANDS, type Comando } from "../../domain/mentions";
-import { findCustomerMention, findSlotPos } from "./doc-helpers";
+import { findCustomerMention, findSlotPos, getCommand, productBefore } from "./doc-helpers";
 import type { MenuController, MenuItem } from "./menu-controller";
-import { NODE, type SlotTipo } from "./schema";
-import { buildTemplate } from "./templates";
+import { NODE, PICKER_SLOTS, SLOT_CHOICES, SLOT_PLACEHOLDERS, type SlotTipo } from "./schema";
+import { buildTemplate, itemRow } from "./templates";
 
 /** A customer, product or sale. Atomic: Backspace removes it whole. */
 export const MentionNode = Node.create({
@@ -187,7 +187,22 @@ export const ComposerSuggestions = Extension.create<ComposerSuggestionsOptions, 
         if (event.shiftKey && (event.key === "Tab" || event.key === "Enter")) return false;
         return menu?.handleKey(event.key) ?? false;
       },
-      onExit: () => menu?.close(),
+      onExit: (props: { range: { from: number; to: number }; editor: Editor }) => {
+        menu?.close();
+        const origin = storage.slotOrigin;
+        storage.slotFilter = null;
+        storage.slotOrigin = null;
+        // Nothing chosen and only "@" left: put the slot back.
+        if (origin && props.editor.state.doc.textBetween(props.range.from, props.range.to) === "@") {
+          props.editor
+            .chain()
+            .insertContentAt(props.range, {
+              type: NODE.slot,
+              attrs: { tipo: origin, placeholder: SLOT_PLACEHOLDERS[origin] },
+            })
+            .run();
+        }
+      },
     });
 
     const currentFilter = (): MentionFilter => {
@@ -253,6 +268,112 @@ export const ComposerSuggestions = Extension.create<ComposerSuggestionsOptions, 
           selectSlot(editor, 0, "first");
         },
         render: render(() => "Comandos"),
+      }),
+    ];
+  },
+});
+
+interface SlotBehaviorOptions {
+  menu: MenuController | null;
+}
+
+interface SlotBehaviorStorage {
+  /** True while the open list is a choice list opened by this extension. */
+  choiceOpen: boolean;
+}
+
+/**
+ * What a selected slot does: picker slots turn into a narrowed `@` list,
+ * choice slots show their options, free slots are replaced by typing
+ * (ProseMirror's default for a selected node). Also adds item rows.
+ */
+export const SlotBehavior = Extension.create<SlotBehaviorOptions, SlotBehaviorStorage>({
+  name: "slotBehavior",
+  // Above ComposerKeys (Enter sends), below ComposerSuggestions.
+  priority: 150,
+  addOptions() {
+    return { menu: null };
+  },
+  addStorage() {
+    return { choiceOpen: false };
+  },
+  onSelectionUpdate() {
+    const { editor, storage } = this;
+    const { menu } = this.options;
+    const { selection } = editor.state;
+    const suggestions = (editor.storage as unknown as { composerSuggestions: ComposerSuggestionsStorage }).composerSuggestions;
+    const node = selection instanceof NodeSelection ? selection.node : null;
+    const tipo = node?.type.name === NODE.slot ? (node.attrs.tipo as SlotTipo) : null;
+
+    if (!tipo) {
+      // Leaving a choice slot closes its list; never close one we didn't open.
+      if (storage.choiceOpen) {
+        storage.choiceOpen = false;
+        menu?.close();
+      }
+      return;
+    }
+
+    const picker = PICKER_SLOTS[tipo];
+    if (picker) {
+      suggestions.slotFilter = picker === "venta" ? { kind: "venta", customerId: null } : { kind: picker };
+      suggestions.slotOrigin = tipo;
+      // Typing "@" in place of the slot opens the narrowed list.
+      editor.chain().insertContentAt({ from: selection.from, to: selection.to }, "@").run();
+      return;
+    }
+
+    const choices = SLOT_CHOICES[tipo];
+    if (choices) {
+      const pos = selection.from;
+      storage.choiceOpen = true;
+      menu?.open(
+        SLOT_PLACEHOLDERS[tipo],
+        choices.map((value) => ({ kind: "choice", value })),
+        (item) => {
+          if (item.kind !== "choice") return;
+          storage.choiceOpen = false;
+          menu.close();
+          editor.chain().focus().insertContentAt({ from: pos, to: pos + 1 }, item.value).run();
+          selectSlot(editor, pos, "next");
+        },
+      );
+    }
+  },
+  addProseMirrorPlugins() {
+    const { menu } = this.options;
+    const editor = this.editor;
+    const storage = this.storage;
+    return [
+      new Plugin({
+        props: {
+          // The choice list is not a Suggestion: route its keys here.
+          handleKeyDown: (_view, event) => {
+            const selection = editor.state.selection;
+            const onChoiceSlot =
+              selection instanceof NodeSelection &&
+              selection.node.type.name === NODE.slot &&
+              SLOT_CHOICES[selection.node.attrs.tipo as SlotTipo] !== undefined;
+            if (!onChoiceSlot || event.key === "Tab") return false;
+            const handled = menu?.handleKey(event.key) ?? false;
+            if (handled) {
+              event.preventDefault();
+              if (event.key === "Escape") storage.choiceOpen = false;
+            }
+            return handled;
+          },
+          // ", " right after a product in /venta or /compra adds a row.
+          handleTextInput: (view, from, to, text) => {
+            if (text !== ",") return false;
+            const comando = getCommand(view.state.doc);
+            if (comando !== "venta" && comando !== "compra") return false;
+            const target = productBefore(view.state.doc.resolve(from));
+            if (!target || from !== to) return false;
+            editor.chain().focus().insertContentAt({ from: target.from, to }, itemRow()).run();
+            selectSlot(editor, target.from, "next");
+            return true;
+          },
+        },
       }),
     ];
   },

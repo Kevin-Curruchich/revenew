@@ -7,7 +7,7 @@ import { Placeholder } from "@tiptap/extensions";
 import { debounceLatest } from "@/lib/debounce";
 import { searchMentions } from "../../actions/search-mentions";
 import type { MentionFilter } from "../../domain/mention-options";
-import { composerNodes, ComposerKeys, ComposerSuggestions } from "./extensions";
+import { composerNodes, ComposerKeys, ComposerSuggestions, SlotBehavior } from "./extensions";
 import { MenuController } from "./menu-controller";
 
 const EDITOR_CLASS =
@@ -32,6 +32,7 @@ export const useComposerEditor = ({ onSubmit, onChange }: UseComposerEditorOptio
       Placeholder.configure({ placeholder: "Ej. vendí dos cartones a Aurita · / comandos · @ mencionar" }),
       ComposerKeys.configure({ onSubmit }),
       ComposerSuggestions.configure({ menu, search }),
+      SlotBehavior.configure({ menu }),
     ],
     editorProps: {
       attributes: {
