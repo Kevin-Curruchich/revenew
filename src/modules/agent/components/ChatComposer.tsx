@@ -6,7 +6,7 @@ import { SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { OutgoingMessage } from "../domain/mentions";
 import { ComposerMenu } from "./composer/ComposerMenu";
-import { serializeMessage } from "./composer/serialize";
+import { hasUserContent, serializeMessage } from "./composer/serialize";
 import { useComposerEditor } from "./composer/useComposerEditor";
 
 interface ChatComposerProps {
@@ -23,13 +23,16 @@ export const ChatComposer = ({ onSend, disabledReason }: ChatComposerProps) => {
 
   const { editor, menu } = useComposerEditor({
     onSubmit: () => submitRef.current(),
-    onChange: (current) => setHasText(serializeMessage(current.getJSON()).mensaje !== ""),
+    onChange: (current) => setHasText(hasUserContent(current.getJSON())),
   });
 
   const submit = async (event?: FormEvent) => {
     event?.preventDefault();
     if (!editor || isDisabled) return;
-    const message = serializeMessage(editor.getJSON());
+    const doc = editor.getJSON();
+    // An untouched template ("Vendí a") is not a message.
+    if (!hasUserContent(doc)) return;
+    const message = serializeMessage(doc);
     if (!message.mensaje) return;
 
     setIsSending(true);

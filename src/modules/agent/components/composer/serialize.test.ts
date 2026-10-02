@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { JSONContent } from "@tiptap/core";
 import { needsSpaceAfter } from "./doc-helpers";
-import { serializeMessage } from "./serialize";
+import { hasUserContent, serializeMessage } from "./serialize";
 import { buildTemplate } from "./templates";
 
 const doc = (...content: JSONContent[]): JSONContent => ({
@@ -101,9 +101,42 @@ describe("serializeMessage", () => {
     expect(result).toEqual({ mensaje: "a @Aurita" });
   });
 
-  it("returns an empty message for a template with nothing filled", () => {
+  it("keeps only the connectors of a template with nothing filled", () => {
     expect(serializeMessage(doc(chip("caja"), text(" "), slot("tipo_caja"), text(" de "), slot("monto")))).toMatchObject({
       mensaje: "de",
     });
+  });
+});
+
+describe("hasUserContent", () => {
+  const venta = (...fill: JSONContent[]) => doc(...buildTemplate("venta"), ...fill);
+
+  it("is false for an empty message", () => {
+    expect(hasUserContent(doc())).toBe(false);
+    expect(hasUserContent(doc(text("  ")))).toBe(false);
+  });
+
+  it("is true for plain text", () => {
+    expect(hasUserContent(doc(text("¿cuánto hay en caja?")))).toBe(true);
+  });
+
+  it("is false for an untouched template", () => {
+    expect(hasUserContent(venta())).toBe(false);
+    expect(hasUserContent(doc(...buildTemplate("caja")))).toBe(false);
+  });
+
+  it("is false when the person only deleted parts of the template", () => {
+    expect(hasUserContent(doc(chip("venta"), text(" Vendí a")))).toBe(false);
+  });
+
+  it("is true once a mention is chosen", () => {
+    expect(hasUserContent(venta(mention("cliente", "c1", "Aurita")))).toBe(true);
+  });
+
+  it("is true once a slot is filled with text", () => {
+    const filled = buildTemplate("caja").map((node) =>
+      node.type === "slot" && node.attrs?.tipo === "monto" ? text("50") : node,
+    );
+    expect(hasUserContent(doc(...filled))).toBe(true);
   });
 });

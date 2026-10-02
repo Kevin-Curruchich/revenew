@@ -8,6 +8,7 @@ import {
   type OutgoingMessage,
 } from "../../domain/mentions";
 import { NODE } from "./schema";
+import { buildTemplate } from "./templates";
 
 const MENTION_TIPOS = new Set(["cliente", "producto", "venta"]);
 
@@ -76,4 +77,31 @@ export const serializeMessage = (doc: JSONContent): OutgoingMessage => {
     ...(comando ? { comando } : {}),
     ...(menciones.length ? { menciones } : {}),
   };
+};
+
+const withoutSpaces = (value: string) => Array.from(value.replace(/\s+/g, ""));
+
+/** Whether `part` can be read in `whole` by only deleting characters. */
+const isSubsequence = (part: string[], whole: string[]) => {
+  let index = 0;
+  for (const char of whole) {
+    if (char === part[index]) index++;
+  }
+  return index === part.length;
+};
+
+/**
+ * Whether the person wrote or chose anything. A command's template left as
+ * it is (or only trimmed) is not something to send: its text is all
+ * connectors ("Vendí a", "de").
+ */
+export const hasUserContent = (doc: JSONContent): boolean => {
+  const { mensaje, comando, menciones } = serializeMessage(doc);
+  if (menciones) return true;
+  const fixed = comando
+    ? buildTemplate(comando)
+        .map((node) => (node.type === "text" ? (node.text ?? "") : ""))
+        .join("")
+    : "";
+  return !isSubsequence(withoutSpaces(mensaje), withoutSpaces(fixed));
 };
