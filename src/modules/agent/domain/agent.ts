@@ -112,6 +112,17 @@ export interface CashMovementDraft {
   nota: string | null;
 }
 
+// --- Payment of a credit sale (`confirmar_cobro`). ---
+
+export interface PaymentDraft {
+  venta_id: string;
+  cliente: string;
+  fecha_venta: string;
+  total: string;
+  fecha_pago: string;
+  medio_pago: PaymentMethod;
+}
+
 // --- Confirmations: same shape from the SSE event and from `/state`. ---
 
 export interface SaleConfirmation {
@@ -135,6 +146,13 @@ export interface CashMovementConfirmation {
   movimiento: CashMovementDraft;
 }
 
+/** Collecting a credit sale: also a fact, so also NO huella. */
+export interface PaymentConfirmation {
+  tipo: "confirmar_cobro";
+  interrupt_id: string;
+  cobro: PaymentDraft;
+}
+
 /** A pause from a tool this panel doesn't know yet. It can still be answered. */
 export interface UnknownConfirmation {
   tipo?: string;
@@ -146,7 +164,8 @@ export interface UnknownConfirmation {
 export type Confirmation =
   | SaleConfirmation
   | PurchaseConfirmation
-  | CashMovementConfirmation;
+  | CashMovementConfirmation
+  | PaymentConfirmation;
 
 export type AnyConfirmation = Confirmation | UnknownConfirmation;
 
@@ -154,6 +173,7 @@ export const KNOWN_CONFIRMATION_TYPES = [
   "confirmar_venta",
   "confirmar_compra",
   "confirmar_movimiento_caja",
+  "confirmar_cobro",
 ] as const;
 
 export const isKnownConfirmation = (
@@ -189,4 +209,6 @@ export type AgentToolName =
   | "previsualizar_venta"
   | "registrar_venta"
   | "registrar_compra"
-  | "registrar_movimiento_caja";
+  | "registrar_movimiento_caja"
+  | "consultar_ventas"
+  | "registrar_cobro";

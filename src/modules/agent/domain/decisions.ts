@@ -2,6 +2,7 @@ import type {
   AnyConfirmation,
   CashMovementDraft,
   Decision,
+  PaymentDraft,
   PurchasePreview,
   SalePreview,
 } from "./agent";
@@ -14,7 +15,7 @@ import type {
  * the server showed; rebuilding it or fetching a fresh preview would make
  * the server's comparison always pass and hide real inventory changes.
  *
- * Cash movements carry no huella, and then none is sent.
+ * Cash movements and payments carry no huella, and then none is sent.
  */
 export const buildApproveDecision = (
   confirmation: AnyConfirmation,
@@ -99,6 +100,25 @@ export const buildCashMovementCorrection = (
   const valores = Object.fromEntries(
     Object.entries(edit).filter(
       ([key, value]) => value !== movement[key as keyof CashMovementDraft],
+    ),
+  );
+  return Object.keys(valores).length > 0
+    ? { accion: "corregir", valores }
+    : null;
+};
+
+export type PaymentEdit = Partial<
+  Pick<PaymentDraft, "fecha_pago" | "medio_pago">
+>;
+
+/** Only the fields that actually changed: `fecha_pago` and `medio_pago`. */
+export const buildPaymentCorrection = (
+  payment: PaymentDraft,
+  edit: PaymentEdit,
+): CorrectionDecision | null => {
+  const valores = Object.fromEntries(
+    Object.entries(edit).filter(
+      ([key, value]) => value !== payment[key as keyof PaymentDraft],
     ),
   );
   return Object.keys(valores).length > 0

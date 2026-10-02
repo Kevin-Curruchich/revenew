@@ -23,6 +23,14 @@ const toolLabels: Record<string, { running: string; done: string }> = {
     running: "Preparando el movimiento de caja…",
     done: "Preparó un movimiento de caja",
   },
+  consultar_ventas: {
+    running: "Consultando ventas…",
+    done: "Consultó las ventas",
+  },
+  registrar_cobro: {
+    running: "Preparando el cobro…",
+    done: "Preparó un cobro",
+  },
 };
 
 export const getToolLabel = (name: string, state: "running" | "done") =>
@@ -46,6 +54,7 @@ export const confirmationTitles: Record<string, string> = {
   confirmar_venta: "Confirmar venta",
   confirmar_compra: "Confirmar compra",
   confirmar_movimiento_caja: "Confirmar movimiento de caja",
+  confirmar_cobro: "Confirmar cobro",
 };
 
 /** "2", "2.5" or "2.000" -> "2" / "2.5" with local separators. */
