@@ -15,6 +15,7 @@ import {
   type AgentStreamRequest,
 } from "../actions/stream-agent";
 import type { AnyConfirmation, Decision, ThreadState } from "../domain/agent";
+import type { OutgoingMessage } from "../domain/mentions";
 import { conversationReducer, fromThreadState } from "../domain/conversation";
 import { agentKeys } from "./useAgentThreads";
 
@@ -161,9 +162,16 @@ export const useAgentConversation = ({
         });
     });
 
-  const sendMessage = (text: string) =>
-    runTurn({ thread_id: threadId, mensaje: text }, () =>
-      dispatch({ type: "turn-open", userText: text }),
+  const sendMessage = (message: OutgoingMessage) =>
+    runTurn(
+      {
+        thread_id: threadId,
+        mensaje: message.mensaje,
+        // Without mentions the body is exactly what the server got before.
+        ...(message.comando ? { comando: message.comando } : {}),
+        ...(message.menciones?.length ? { menciones: message.menciones } : {}),
+      },
+      () => dispatch({ type: "turn-open", message }),
     );
 
   const respond = (confirmation: AnyConfirmation, decision: Decision) =>

@@ -1,4 +1,5 @@
 import type { CashMovementType, PaymentMethod } from "./agent";
+import type { Comando } from "./mentions";
 
 const toolLabels: Record<string, { running: string; done: string }> = {
   buscar_cliente: { running: "Buscando cliente…", done: "Buscó el cliente" },
@@ -55,6 +56,13 @@ export const confirmationTitles: Record<string, string> = {
   confirmar_compra: "Confirmar compra",
   confirmar_movimiento_caja: "Confirmar movimiento de caja",
   confirmar_cobro: "Confirmar cobro",
+};
+
+export const commandLabels: Record<Comando, { label: string; description: string }> = {
+  venta: { label: "Venta", description: "Registrar una venta" },
+  compra: { label: "Compra", description: "Registrar una compra" },
+  cobro: { label: "Cobro", description: "Cobrar una venta a crédito" },
+  caja: { label: "Caja", description: "Entrada, salida, aporte o retiro" },
 };
 
 /** "2", "2.5" or "2.000" -> "2" / "2.5" with local separators. */

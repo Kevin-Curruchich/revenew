@@ -1,65 +1,62 @@
-import { useState, type FormEvent, type KeyboardEvent } from "react";
+// src/modules/agent/components/ChatComposer.tsx
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { EditorContent } from "@tiptap/react";
 import { SendHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import type { OutgoingMessage } from "../domain/mentions";
+import { ComposerMenu } from "./composer/ComposerMenu";
+import { hasUserContent, serializeMessage } from "./composer/serialize";
+import { useComposerEditor } from "./composer/useComposerEditor";
 
 interface ChatComposerProps {
-  onSend: (text: string) => Promise<boolean>;
+  onSend: (message: OutgoingMessage) => Promise<boolean>;
   /** Why the input is blocked, or `null` when the person can write. */
   disabledReason: string | null;
 }
 
 export const ChatComposer = ({ onSend, disabledReason }: ChatComposerProps) => {
-  const [text, setText] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [hasText, setHasText] = useState(false);
   const isDisabled = disabledReason !== null || isSending;
+  const submitRef = useRef<() => void>(() => {});
+
+  const { editor, menu } = useComposerEditor({
+    onSubmit: () => submitRef.current(),
+    onChange: (current) => setHasText(hasUserContent(current.getJSON())),
+  });
 
   const submit = async (event?: FormEvent) => {
     event?.preventDefault();
-    const message = text.trim();
-    if (!message || isDisabled) return;
+    if (!editor || isDisabled) return;
+    const doc = editor.getJSON();
+    // An untouched template ("Vendí a") is not a message.
+    if (!hasUserContent(doc)) return;
+    const message = serializeMessage(doc);
+    if (!message.mensaje) return;
 
     setIsSending(true);
     // Clear only once the server accepted it, so a rejected message isn't lost.
     const accepted = await onSend(message);
-    if (accepted) setText("");
+    if (accepted && !editor.isDestroyed) editor.commands.clearContent(true);
     setIsSending(false);
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey &&
-      !event.nativeEvent.isComposing
-    ) {
-      event.preventDefault();
-      void submit();
-    }
-  };
+  useEffect(() => {
+    submitRef.current = () => void submit();
+  });
+
+  useEffect(() => {
+    editor?.setEditable(disabledReason === null);
+  }, [editor, disabledReason]);
 
   return (
     <form onSubmit={submit} className="space-y-2">
-      {disabledReason ? (
-        <p className="text-xs text-muted-foreground">{disabledReason}</p>
-      ) : null}
-      <div className="flex items-end gap-2">
-        <Textarea
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Ej. vendí dos cartones a Aurita"
-          aria-label="Mensaje para el asistente"
-          disabled={disabledReason !== null}
-          rows={1}
-          className="max-h-40 min-h-10 resize-none"
-        />
-        <Button
-          type="submit"
-          size="icon"
-          disabled={isDisabled || !text.trim()}
-          aria-label="Enviar mensaje"
-        >
+      {disabledReason ? <p className="text-xs text-muted-foreground">{disabledReason}</p> : null}
+      <div className="relative flex items-end gap-2">
+        <ComposerMenu menu={menu} />
+        <EditorContent editor={editor} className="min-w-0 flex-1" />
+        <Button type="submit" size="icon" disabled={isDisabled || !hasText} aria-label="Enviar mensaje">
           <SendHorizontal />
         </Button>
       </div>

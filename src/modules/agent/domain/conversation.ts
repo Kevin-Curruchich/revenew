@@ -1,7 +1,14 @@
 import type { AgentEvent, AnyConfirmation, ThreadState } from "./agent";
+import type { Comando, Mencion, OutgoingMessage } from "./mentions";
 
 export type ChatItem =
-  | { id: string; kind: "user"; text: string }
+  | {
+      id: string;
+      kind: "user";
+      text: string;
+      comando?: Comando;
+      menciones?: Mencion[];
+    }
   | { id: string; kind: "assistant"; text: string; streaming: boolean }
   | { id: string; kind: "tool"; name: string };
 
@@ -29,7 +36,7 @@ export type ConversationAction =
   | { type: "reset"; state: ThreadState }
   | { type: "turn-start" }
   /** The server accepted the request: the stream is open. */
-  | { type: "turn-open"; userText?: string; clearPending?: boolean }
+  | { type: "turn-open"; message?: OutgoingMessage; clearPending?: boolean }
   | { type: "agent-event"; event: AgentEvent }
   | { type: "turn-end" }
   | { type: "set-error"; message: string | null };
@@ -41,7 +48,13 @@ export const fromThreadState = (state: ThreadState): ConversationState => ({
   items: state.mensajes.map((message, index): ChatItem => {
     const id = `saved-${index}`;
     if (message.rol === "usuario")
-      return { id, kind: "user", text: message.texto };
+      return {
+        id,
+        kind: "user",
+        text: message.texto,
+        ...(message.comando ? { comando: message.comando } : {}),
+        ...(message.menciones?.length ? { menciones: message.menciones } : {}),
+      };
     if (message.rol === "asistente")
       return { id, kind: "assistant", text: message.texto, streaming: false };
     return { id, kind: "tool", name: message.nombre };
@@ -128,10 +141,20 @@ export const conversationReducer = (
     case "turn-open":
       return {
         ...state,
-        items: action.userText
+        items: action.message
           ? [
               ...state.items,
-              { id: newId(), kind: "user", text: action.userText },
+              {
+                id: newId(),
+                kind: "user",
+                text: action.message.mensaje,
+                ...(action.message.comando
+                  ? { comando: action.message.comando }
+                  : {}),
+                ...(action.message.menciones?.length
+                  ? { menciones: action.message.menciones }
+                  : {}),
+              },
             ]
           : state.items,
         // Answering one confirmation re-announces the others in this same

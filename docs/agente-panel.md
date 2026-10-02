@@ -50,6 +50,23 @@ src/modules/agent/
 - **422**: bug del panel; se loguea y se muestra un error genérico.
 - **503**: "el asistente no está disponible", sin reintentos.
 
+## Composer: menciones y comandos
+
+El composer es un editor Tiptap (`components/composer/`). Spec:
+`docs/superpowers/specs/2026-10-02-composer-enriquecido-design.md`.
+
+| Pieza | Dónde |
+| --- | --- |
+| `@` cliente / producto / venta pendiente | `ComposerSuggestions` + `actions/search-mentions.ts` |
+| `/venta`, `/compra`, `/cobro`, `/caja` y sus plantillas | `composer/templates.ts` |
+| Huecos (Tab, listas, renglones) | `SlotBehavior` + `composer/doc-helpers.ts` |
+| Documento → `{ mensaje, comando, menciones }` | `composer/serialize.ts` (rangos en code points) |
+| Etiquetas en el historial | `UserMessageContent` + `splitMentions` |
+
+Los campos `comando` y `menciones` solo se envían cuando hay; un mensaje
+sin ellos es idéntico al de antes. El backend debe aceptarlos antes de
+desplegar este panel.
+
 ## Formato de las respuestas
 
 El agente (Claude vía `ChatAnthropic`) no recibe instrucciones de formato en

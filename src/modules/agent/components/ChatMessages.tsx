@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import type { ChatItem } from "../domain/conversation";
 import { getToolLabel } from "../domain/labels";
 import { AgentMarkdown } from "./AgentMarkdown";
+import { UserMessageContent } from "./UserMessageContent";
 
 const ToolChip = ({ name }: { name: string }) => (
   <div className="flex justify-start">
@@ -35,7 +36,15 @@ const Bubble = ({ item }: { item: Extract<ChatItem, { text: string }> }) => {
       >
         {/* What the person typed is shown verbatim; the agent's answers
             are markdown. */}
-        {isUser ? item.text : <AgentMarkdown text={item.text} />}
+        {item.kind === "user" ? (
+          <UserMessageContent
+            text={item.text}
+            comando={item.comando}
+            menciones={item.menciones}
+          />
+        ) : (
+          <AgentMarkdown text={item.text} />
+        )}
         {item.kind === "assistant" && item.streaming ? (
           <span
             aria-hidden="true"

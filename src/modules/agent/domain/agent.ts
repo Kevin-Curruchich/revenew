@@ -3,6 +3,8 @@
  * `docs/agente.md` in the backend repo (ai-sales-assistant).
  */
 
+import type { Comando, Mencion } from "./mentions";
+
 export interface AgentThread {
   id: string;
   title: string;
@@ -12,7 +14,7 @@ export interface AgentThread {
 
 /** A message as returned by `GET /threads/{id}/state`. */
 export type StoredMessage =
-  | { rol: "usuario"; texto: string }
+  | { rol: "usuario"; texto: string; comando?: Comando; menciones?: Mencion[] }
   | { rol: "asistente"; texto: string }
   | { rol: "herramienta"; nombre: string };
 
