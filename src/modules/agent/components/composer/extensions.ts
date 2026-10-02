@@ -196,10 +196,12 @@ export const ComposerSuggestions = Extension.create<ComposerSuggestionsOptions, 
         if (origin && props.editor.state.doc.textBetween(props.range.from, props.range.to) === "@") {
           props.editor
             .chain()
-            .insertContentAt(props.range, {
-              type: NODE.slot,
-              attrs: { tipo: origin, placeholder: SLOT_PLACEHOLDERS[origin] },
-            })
+            .insertContentAt(
+              props.range,
+              { type: NODE.slot, attrs: { tipo: origin, placeholder: SLOT_PLACEHOLDERS[origin] } },
+              // Keep wherever the user moved to (Shift+Tab, a tap on another slot).
+              { updateSelection: false },
+            )
             .run();
         }
       },
@@ -280,6 +282,8 @@ interface SlotBehaviorOptions {
 interface SlotBehaviorStorage {
   /** True while the open list is a choice list opened by this extension. */
   choiceOpen: boolean;
+  /** Position of the choice slot that opened the list. */
+  choicePos: number | null;
 }
 
 /**
@@ -295,7 +299,7 @@ export const SlotBehavior = Extension.create<SlotBehaviorOptions, SlotBehaviorSt
     return { menu: null };
   },
   addStorage() {
-    return { choiceOpen: false };
+    return { choiceOpen: false, choicePos: null };
   },
   onSelectionUpdate() {
     const { editor, storage } = this;
@@ -305,14 +309,15 @@ export const SlotBehavior = Extension.create<SlotBehaviorOptions, SlotBehaviorSt
     const node = selection instanceof NodeSelection ? selection.node : null;
     const tipo = node?.type.name === NODE.slot ? (node.attrs.tipo as SlotTipo) : null;
 
-    if (!tipo) {
-      // Leaving a choice slot closes its list; never close one we didn't open.
-      if (storage.choiceOpen) {
-        storage.choiceOpen = false;
-        menu?.close();
-      }
-      return;
+    // Leaving the slot that opened a choice list closes it, before anything
+    // else runs (a picker slot opens its own list). Never close one we didn't open.
+    if (storage.choiceOpen && !(tipo && selection.from === storage.choicePos)) {
+      storage.choiceOpen = false;
+      storage.choicePos = null;
+      menu?.close();
     }
+
+    if (!tipo) return;
 
     const picker = PICKER_SLOTS[tipo];
     if (picker) {
@@ -327,12 +332,14 @@ export const SlotBehavior = Extension.create<SlotBehaviorOptions, SlotBehaviorSt
     if (choices) {
       const pos = selection.from;
       storage.choiceOpen = true;
+      storage.choicePos = pos;
       menu?.open(
         SLOT_PLACEHOLDERS[tipo],
         choices.map((value) => ({ kind: "choice", value })),
         (item) => {
           if (item.kind !== "choice") return;
           storage.choiceOpen = false;
+          storage.choicePos = null;
           menu.close();
           editor.chain().focus().insertContentAt({ from: pos, to: pos + 1 }, item.value).run();
           selectSlot(editor, pos, "next");
@@ -358,7 +365,10 @@ export const SlotBehavior = Extension.create<SlotBehaviorOptions, SlotBehaviorSt
             const handled = menu?.handleKey(event.key) ?? false;
             if (handled) {
               event.preventDefault();
-              if (event.key === "Escape") storage.choiceOpen = false;
+              if (event.key === "Escape") {
+                storage.choiceOpen = false;
+                storage.choicePos = null;
+              }
             }
             return handled;
           },
