@@ -18,6 +18,7 @@ import {
 import { buildApproveDecision, CANCEL_DECISION } from "../../domain/decisions";
 import { confirmationTitles } from "../../domain/labels";
 import { CashMovementConfirmationBody } from "./CashMovementConfirmationBody";
+import { PaymentConfirmationBody } from "./PaymentConfirmationBody";
 import { PurchaseConfirmationBody } from "./PurchaseConfirmationBody";
 import { SaleConfirmationBody } from "./SaleConfirmationBody";
 
@@ -57,8 +58,10 @@ export const ConfirmationCard = ({
     <SaleConfirmationBody confirmation={confirmation} {...bodyProps} />
   ) : confirmation.tipo === "confirmar_compra" ? (
     <PurchaseConfirmationBody confirmation={confirmation} {...bodyProps} />
-  ) : (
+  ) : confirmation.tipo === "confirmar_movimiento_caja" ? (
     <CashMovementConfirmationBody confirmation={confirmation} {...bodyProps} />
+  ) : (
+    <PaymentConfirmationBody confirmation={confirmation} {...bodyProps} />
   );
 
   const title =

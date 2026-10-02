@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type {
   CashMovementConfirmation,
+  PaymentConfirmation,
   SaleConfirmation,
   SalePreview,
   SalePreviewItem,
@@ -8,6 +9,7 @@ import type {
 import {
   buildApproveDecision,
   buildCashMovementCorrection,
+  buildPaymentCorrection,
   buildPurchaseCorrection,
   buildSaleCorrection,
 } from "./decisions";
@@ -78,6 +80,22 @@ describe("buildApproveDecision", () => {
       },
     };
 
+    expect(buildApproveDecision(confirmation)).toEqual({ accion: "aprobar" });
+  });
+
+  it("approves payments without a huella", () => {
+    const confirmation: PaymentConfirmation = {
+      tipo: "confirmar_cobro",
+      interrupt_id: "i3",
+      cobro: {
+        venta_id: "v1",
+        cliente: "Juan Gonzalez",
+        fecha_venta: "2026-09-24",
+        total: "33.33",
+        fecha_pago: "2026-09-30",
+        medio_pago: "efectivo",
+      },
+    };
     expect(buildApproveDecision(confirmation)).toEqual({ accion: "aprobar" });
   });
 });
@@ -176,5 +194,34 @@ describe("buildCashMovementCorrection", () => {
 
   it("returns null when nothing changed", () => {
     expect(buildCashMovementCorrection(movement, { monto: "500" })).toBeNull();
+  });
+});
+
+describe("buildPaymentCorrection", () => {
+  const payment = {
+    venta_id: "v1",
+    cliente: "Juan Gonzalez",
+    fecha_venta: "2026-09-24",
+    total: "33.33",
+    fecha_pago: "2026-09-30",
+    medio_pago: "efectivo" as const,
+  };
+
+  it("only sends the fields that changed", () => {
+    expect(
+      buildPaymentCorrection(payment, {
+        fecha_pago: "2026-09-28",
+        medio_pago: "efectivo",
+      }),
+    ).toEqual({ accion: "corregir", valores: { fecha_pago: "2026-09-28" } });
+  });
+
+  it("returns null when nothing changed", () => {
+    expect(
+      buildPaymentCorrection(payment, {
+        fecha_pago: "2026-09-30",
+        medio_pago: "efectivo",
+      }),
+    ).toBeNull();
   });
 });

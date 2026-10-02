@@ -41,6 +41,12 @@ export const cashMovementEditSchema = z.object({
   nota: z.string(),
 });
 
+export const paymentEditSchema = z.object({
+  fecha_pago: z.string().min(1, "Requerido"),
+  medio_pago: z.enum(["efectivo", "transferencia"]),
+});
+
 export type SaleEditValues = z.infer<typeof saleEditSchema>;
 export type PurchaseEditValues = z.infer<typeof purchaseEditSchema>;
 export type CashMovementEditValues = z.infer<typeof cashMovementEditSchema>;
+export type PaymentEditValues = z.infer<typeof paymentEditSchema>;

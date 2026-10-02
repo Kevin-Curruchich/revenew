@@ -21,7 +21,7 @@ src/modules/agent/
 │   ├── useAgentThreads.ts       # React Query: hilos y estado
 │   └── useAgentConversation.ts  # Orquesta turnos, errores HTTP y resync
 ├── components/
-│   ├── confirmation/     # Tarjeta única + cuerpos de venta, compra y caja
+│   ├── confirmation/     # Tarjeta única + cuerpos de venta, compra, caja y cobro
 │   └── ...               # Mensajes, compositor, lista de hilos
 └── pages/                # /agent y /agent/:threadId
 ```
@@ -31,7 +31,7 @@ src/modules/agent/
 | Regla | Implementación |
 | --- | --- |
 | La huella se devuelve tal cual, nunca recalculada | `buildApproveDecision` reenvía el mismo valor recibido; test que verifica la misma referencia y el mismo JSON |
-| No toda confirmación trae huella | `confirmar_movimiento_caja` se aprueba con `{"accion": "aprobar"}` |
+| No toda confirmación trae huella | `confirmar_movimiento_caja` y `confirmar_cobro` se aprueban con `{"accion": "aprobar"}` |
 | `interrupt_id` es hermano de `decision` | `AgentStreamRequest` en `stream-agent.ts` |
 | Sin `EventSource` | `fetch` + `getReader()` + `createSseParser` |
 | Una corrida por hilo | Input deshabilitado mientras hay un turno en vuelo; un 409 "corrida en curso" nunca se reintenta |
