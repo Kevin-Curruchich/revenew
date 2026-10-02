@@ -250,7 +250,7 @@ export const ComposerSuggestions = Extension.create<ComposerSuggestionsOptions, 
         command: ({ editor, range, props }) => {
           if (props.kind !== "mention") return;
           const { tipo, id, nombre } = props.option;
-          const fromSlot = storage.slotOrigin !== null;
+          const origin = storage.slotOrigin;
           storage.slotFilter = null;
           storage.slotOrigin = null;
           // The first character after the "@query" decides the trailing space;
@@ -266,7 +266,12 @@ export const ComposerSuggestions = Extension.create<ComposerSuggestionsOptions, 
             .focus()
             .insertContentAt(range, needsSpaceAfter(next) ? [mentionNode, { type: "text", text: " " }] : [mentionNode])
             .run();
-          if (fromSlot) selectSlot(editor, range.from, "next");
+          if (!origin) return;
+          // After a product in /venta or /compra the caret stays by the chip,
+          // so "," can add another row; Tab goes on to the next slot.
+          const comando = getCommand(editor.state.doc);
+          if (origin === "producto" && (comando === "venta" || comando === "compra")) return;
+          selectSlot(editor, range.from, "next");
         },
         render: render(() => MENTION_TITLES[currentFilter().kind]),
       }),
