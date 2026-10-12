@@ -8,6 +8,7 @@ export interface CalendarEvent {
   customer: string;
   productId: string;
   productName: string;
+  followUpId: string;
   type: CalendarEventType;
 }
 

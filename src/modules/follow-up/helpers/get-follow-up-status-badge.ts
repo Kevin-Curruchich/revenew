@@ -6,6 +6,7 @@ const followUpStatusBadges: Record<FollowUpStatus, StatusBadgeInfo> = {
   urgent: { variant: "default", label: "Urgente" },
   upcoming: { variant: "secondary", label: "Próximo" },
   normal: { variant: "outline", label: "Normal" },
+  needs_estimate: { variant: "outline", label: "Sin estimación" },
 };
 
 export const getFollowUpStatusBadge = (

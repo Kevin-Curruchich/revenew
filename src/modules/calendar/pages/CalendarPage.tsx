@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { endOfMonth, parseISODate, startOfMonth, toISODate } from "@/lib/dates";
 import { formatLongDate } from "@/lib/formatters";
+import { FollowUpItemActions } from "@/modules/follow-up/components/FollowUpItemActions";
 import type { CalendarEvent } from "../actions/get-calendar-events";
 import { EventDayButton } from "../components/EventDayButton";
 import { useCalendarEvents } from "../hooks/useCalendarEvents";
@@ -95,7 +96,7 @@ export const CalendarPage = () => {
                 <ul className="space-y-3">
                   {selectedEvents.map((event) => (
                     <li
-                      key={`${event.customerId}-${event.productId}`}
+                      key={event.followUpId}
                       className="flex items-start justify-between rounded-lg border p-3"
                     >
                       <div>
@@ -104,7 +105,13 @@ export const CalendarPage = () => {
                           Compra estimada: {event.productName}
                         </p>
                       </div>
-                      <StatusBadge status={eventBadges[event.type]} />
+                      <div className="flex flex-col items-end gap-2">
+                        <StatusBadge status={eventBadges[event.type]} />
+                        <FollowUpItemActions
+                          followUpId={event.followUpId}
+                          productName={event.productName}
+                        />
+                      </div>
                     </li>
                   ))}
                 </ul>

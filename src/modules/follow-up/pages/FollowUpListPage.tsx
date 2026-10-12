@@ -30,6 +30,7 @@ import {
   isFollowUpFilter,
   type FollowUpFilter,
 } from "../actions/get-follow-ups";
+import { FollowUpItemActions } from "../components/FollowUpItemActions";
 import {
   formatDaysUntil,
   getFollowUpStatusBadge,
@@ -89,7 +90,7 @@ export const FollowUpListPage = () => {
         <CardHeader>
           <CardTitle>Lista de Seguimiento</CardTitle>
           <CardDescription>
-            Ordenados por fecha de próxima compra estimada
+            Ordenados por fecha de próxima compra
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -107,7 +108,7 @@ export const FollowUpListPage = () => {
                     <TableHead>Cliente</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Productos</TableHead>
-                    <TableHead>Próxima Compra Estimada</TableHead>
+                    <TableHead>Próxima Compra</TableHead>
                     <TableHead>Días Restantes</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
@@ -115,8 +116,8 @@ export const FollowUpListPage = () => {
                 </TableHeader>
                 <TableBody>
                   {data.data.map((followUp) => {
-                    // Items come sorted by estimated date: the first is the
-                    // most urgent one.
+                    // Items come sorted by due date: the first is the most
+                    // urgent one.
                     const nextItem = followUp.items[0];
                     const daysUntil = nextItem?.days_until ?? null;
 
@@ -129,14 +130,25 @@ export const FollowUpListPage = () => {
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             {followUp.items.map((item) => (
-                              <span key={item.product_id} className="text-sm">
-                                {item.product_name}
-                              </span>
+                              <div
+                                key={item.product_id}
+                                className="flex items-center justify-between gap-2"
+                              >
+                                <span className="text-sm">
+                                  {item.product_name}
+                                </span>
+                                {item.follow_up_id ? (
+                                  <FollowUpItemActions
+                                    followUpId={item.follow_up_id}
+                                    productName={item.product_name}
+                                  />
+                                ) : null}
+                              </div>
                             ))}
                           </div>
                         </TableCell>
                         <TableCell>
-                          {nextItem?.estimated_next_purchase ?? "N/A"}
+                          {nextItem?.due_date ?? "N/A"}
                         </TableCell>
                         <TableCell>
                           <span

@@ -1,6 +1,15 @@
-export type FollowUpStatus = "overdue" | "urgent" | "upcoming" | "normal";
+export type FollowUpStatus =
+  | "overdue"
+  | "urgent"
+  | "upcoming"
+  | "normal"
+  | "needs_estimate";
 
 export interface FollowUpItem {
+  /** Open follow-up record; `null` only when the status is `needs_estimate`. */
+  follow_up_id: string | null;
+  /** YYYY-MM-DD. Shown as "Próxima compra"; differs from the estimate after a postpone. */
+  due_date: string | null;
   product_id: string;
   product_name: string;
   avg_interval_days: number | null;
@@ -19,4 +28,13 @@ export interface FollowUp {
   email: string | null;
   status: FollowUpStatus;
   items: FollowUpItem[];
+}
+
+/** The follow-up opened by a postpone (it gets a new id). */
+export interface FollowUpRecord {
+  id: string;
+  customer_id: string;
+  product_id: string;
+  due_date: string; // YYYY-MM-DD
+  status: "open" | "closed";
 }

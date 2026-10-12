@@ -17,6 +17,10 @@ export const toISODate = (date: Date): string =>
 /** Today's date as `YYYY-MM-DD` in the local timezone. */
 export const todayISODate = (): string => toISODate(new Date());
 
+/** Tomorrow's date as `YYYY-MM-DD` in the local timezone. */
+export const tomorrowISODate = (): string =>
+  toISODate(dayjs().add(1, "day").toDate());
+
 /** Parses a strict `YYYY-MM-DD` string. Returns `null` when invalid. */
 export const parseISODate = (value: string | null | undefined): Date | null => {
   if (!value) return null;
