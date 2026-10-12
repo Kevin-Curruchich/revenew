@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.16.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.15.0...v0.16.0) (2026-10-12)
+
+
+### Features
+
+* **follow-up:** postpone and dismiss follow-ups ([13ab4b2](https://github.com/Kevin-Curruchich/revenew/commit/13ab4b2e1c9f7fa18874576a86052104bf4e4002)), closes [#18](https://github.com/Kevin-Curruchich/revenew/issues/18)
+
 ## [0.15.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.14.0...v0.15.0) (2026-10-02)
 
 
