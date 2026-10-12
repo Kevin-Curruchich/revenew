@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { ErrorState, LoadingState } from "@/components/shared/QueryStates";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { formatCurrency, pluralize } from "@/lib/formatters";
+import { FollowUpItemActions } from "@/modules/follow-up/components/FollowUpItemActions";
 import { getFollowUpStatusBadge } from "@/modules/follow-up/helpers/get-follow-up-status-badge";
 import { StatCard } from "../components/StatCard";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
@@ -143,14 +144,22 @@ export const DashboardPage = () => {
                             <p className="font-medium">{item.product_name}</p>
                             <p className="text-xs text-muted-foreground">
                               Próxima compra:{" "}
-                              {item.estimated_next_purchase ?? "N/A"}
+                              {item.due_date ?? "N/A"}
                             </p>
                           </div>
-                          {item.stock_alert ? (
-                            <Badge variant="destructive">Stock bajo</Badge>
-                          ) : (
-                            <Badge variant="outline">Stock OK</Badge>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {item.stock_alert ? (
+                              <Badge variant="destructive">Stock bajo</Badge>
+                            ) : (
+                              <Badge variant="outline">Stock OK</Badge>
+                            )}
+                            {item.follow_up_id ? (
+                              <FollowUpItemActions
+                                followUpId={item.follow_up_id}
+                                productName={item.product_name}
+                              />
+                            ) : null}
+                          </div>
                         </div>
                       ))}
                     </div>
