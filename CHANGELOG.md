@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.17.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.16.0...v0.17.0) (2026-10-14)
+
+
+### Features
+
+* **products:** show sale lots, sold-out lots and this month by default ([9e4c1c7](https://github.com/Kevin-Curruchich/revenew/commit/9e4c1c7f9bf74b60c59a0cab9355e4b389c4c1c8))
+
 ## [0.16.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.15.0...v0.16.0) (2026-10-12)
 
 
