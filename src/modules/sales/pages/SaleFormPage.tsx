@@ -12,6 +12,7 @@ import { useProductsForSale } from "@/modules/products/hooks/useProductsForSale"
 import type { SalePayload } from "../actions/create-sale";
 import { PaymentStatusControl } from "../components/PaymentStatusControl";
 import { SaleForm } from "../components/SaleForm";
+import { SaleItemLots } from "../components/SaleItemLots";
 import type { SaleProductOption } from "../components/SaleItemRow";
 import { toSaleFormValues } from "../components/sale-form-schema";
 import { getPaymentStatusBadge, type Sale } from "../domain/sale";
@@ -142,6 +143,8 @@ export const SaleFormPage = () => {
           ) : null
         }
       />
+
+      {sale ? <SaleItemLots sale={sale} /> : null}
     </div>
   );
 };

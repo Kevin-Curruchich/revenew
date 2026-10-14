@@ -33,7 +33,10 @@ import {
   LoadingState,
 } from "@/components/shared/QueryStates";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { useListSearchParams } from "@/hooks/useListSearchParams";
+import {
+  monthDefaultDateRange,
+  useListSearchParams,
+} from "@/hooks/useListSearchParams";
 import { formatCurrency, pluralize, shortId } from "@/lib/formatters";
 import { useCustomers } from "@/modules/customers/hooks/useCustomers";
 import { useProducts } from "@/modules/products/hooks/useProducts";
@@ -55,8 +58,10 @@ export const SalesListPage = () => {
   const customerId = getParam("customer_id");
   const productId = getParam("product_id");
   const paymentStatus = getParam("is_payment_pending");
-  const startDate = getParam("start_date");
-  const endDate = getParam("end_date");
+  const { startDate, endDate, setDateRange } = monthDefaultDateRange({
+    getParam,
+    setParams,
+  });
 
   const { data, isPending, isError, error, refetch } = useSales({
     offset,
@@ -185,9 +190,7 @@ export const SalesListPage = () => {
             <DateRangePicker
               start={startDate}
               end={endDate}
-              onChange={({ start, end }) =>
-                setParams({ start_date: start, end_date: end })
-              }
+              onChange={setDateRange}
             />
           </div>
         </CardHeader>

@@ -1,6 +1,16 @@
 import type { StatusBadgeInfo } from "@/components/shared/StatusBadge";
 import type { ProductEarningMode } from "@/modules/products/domain/product";
 
+/** Part of a sale item taken from one purchase lot (FIFO can split an item). */
+export interface SaleItemAllocation {
+  id: string;
+  purchase_item_id: string;
+  purchase_id: string;
+  quantity_allocated: number | string;
+  unit_cost_snapshot: number | string;
+  lot_purchase_date: string;
+}
+
 export interface SaleItem {
   id: string;
   product_id: string;
@@ -18,6 +28,7 @@ export interface SaleItem {
   product_earning_mode?: ProductEarningMode;
   product_earning_percent?: number;
   product_earning_fee_amount?: number;
+  allocations?: SaleItemAllocation[];
 }
 
 export interface Sale {

@@ -24,7 +24,10 @@ import {
   LoadingState,
 } from "@/components/shared/QueryStates";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { useListSearchParams } from "@/hooks/useListSearchParams";
+import {
+  monthDefaultDateRange,
+  useListSearchParams,
+} from "@/hooks/useListSearchParams";
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { StatCard } from "@/modules/dashboard/components/StatCard";
@@ -67,8 +70,10 @@ const MovementConcept = ({ movement }: { movement: CashMovement }) => (
 
 export const CashPage = () => {
   const { offset, limit, getParam, setParams } = useListSearchParams(PAGE_SIZE);
-  const startDate = getParam("start_date");
-  const endDate = getParam("end_date");
+  const { startDate, endDate, setDateRange } = monthDefaultDateRange({
+    getParam,
+    setParams,
+  });
 
   const summary = useCashSummary();
   const { data, isPending, isError, error, refetch } = useCashMovements({
@@ -108,9 +113,7 @@ export const CashPage = () => {
             <DateRangePicker
               start={startDate}
               end={endDate}
-              onChange={({ start, end }) =>
-                setParams({ start_date: start, end_date: end })
-              }
+              onChange={setDateRange}
             />
           </div>
         </CardHeader>

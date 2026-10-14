@@ -25,7 +25,7 @@ export const ProductLotsDialog = ({
         Lotes
       </Button>
     </DialogTrigger>
-    <DialogContent className="sm:max-w-3xl">
+    <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
       <DialogHeader>
         <DialogTitle>Lotes de {productName}</DialogTitle>
         <DialogDescription>
