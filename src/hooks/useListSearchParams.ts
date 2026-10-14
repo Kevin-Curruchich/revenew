@@ -1,4 +1,10 @@
 import { useSearchParams } from "react-router";
+import {
+  startOfMonth,
+  toISODate,
+  todayISODate,
+  type ISODateRange,
+} from "@/lib/dates";
 
 export const PAGE_PARAM = "page";
 
@@ -39,4 +45,30 @@ export const useListSearchParams = (limit: number) => {
   };
 
   return { page, offset, limit, getParam, setParams };
+};
+
+const ALL_DATES = "all";
+
+/**
+ * Date range filter that starts on "this month". Clearing it shows every
+ * date, so `range=all` remembers the user cleared it.
+ */
+export const monthDefaultDateRange = ({
+  getParam,
+  setParams,
+}: Pick<ReturnType<typeof useListSearchParams>, "getParam" | "setParams">) => {
+  const start = getParam("start_date");
+  const end = getParam("end_date");
+  const useDefault = !start && !end && getParam("range") !== ALL_DATES;
+
+  return {
+    startDate: useDefault ? toISODate(startOfMonth(new Date())) : start,
+    endDate: useDefault ? todayISODate() : end,
+    setDateRange: ({ start, end }: ISODateRange) =>
+      setParams({
+        start_date: start,
+        end_date: end,
+        range: start || end ? null : ALL_DATES,
+      }),
+  };
 };

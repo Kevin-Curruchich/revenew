@@ -23,7 +23,10 @@ import {
   ErrorState,
   LoadingState,
 } from "@/components/shared/QueryStates";
-import { useListSearchParams } from "@/hooks/useListSearchParams";
+import {
+  monthDefaultDateRange,
+  useListSearchParams,
+} from "@/hooks/useListSearchParams";
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { StatCard } from "@/modules/dashboard/components/StatCard";
@@ -60,8 +63,10 @@ export const ProfitReportPage = () => {
   const groupBy: ProfitReportGroupBy = isGroupBy(groupByParam)
     ? groupByParam
     : "product";
-  const startDate = getParam("start_date");
-  const endDate = getParam("end_date");
+  const { startDate, endDate, setDateRange } = monthDefaultDateRange({
+    getParam,
+    setParams,
+  });
 
   const { data, isPending, isError, error, refetch } = useProfitReport({
     group_by: groupBy,
@@ -101,9 +106,7 @@ export const ProfitReportPage = () => {
         <DateRangePicker
           start={startDate}
           end={endDate}
-          onChange={({ start, end }) =>
-            setParams({ start_date: start, end_date: end })
-          }
+          onChange={setDateRange}
         />
       </div>
 

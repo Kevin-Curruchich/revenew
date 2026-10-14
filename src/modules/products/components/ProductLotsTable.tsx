@@ -29,76 +29,119 @@ export const ProductLotsTable = ({ productId }: { productId: string }) => {
 
   if (isPending) return <LoadingState label="Cargando lotes..." />;
   if (isError) return <ErrorState error={error} onRetry={() => refetch()} />;
-  if (data.lots.length === 0) {
-    return (
-      <EmptyState
-        title="Sin lotes disponibles"
-        description="Registra una compra confirmada para agregar stock."
-      />
-    );
-  }
 
   const summary = summarizeLots(data.lots);
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-        <span>
-          <span className="text-muted-foreground">Unidades en lotes: </span>
-          <span className="font-semibold">{formatUnits(summary.units)}</span>
-        </span>
-        <span>
-          <span className="text-muted-foreground">Costo del inventario: </span>
-          <span className="font-semibold">{formatCurrency(summary.cost)}</span>
-        </span>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Fecha de compra</TableHead>
-            <TableHead className="text-right">Disponible</TableHead>
-            <TableHead className="text-right">Costo unitario</TableHead>
-            <TableHead className="text-right">Precio sugerido</TableHead>
-            <TableHead className="text-right">Compra</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.lots.map((lot, index) => (
-            <TableRow key={lot.purchase_item_id}>
-              <TableCell className="whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  {formatShortDate(lot.purchase_date)}
-                  {index === 0 ? (
-                    <Badge
-                      variant="secondary"
-                      title="La próxima venta sale de este lote"
+    <div className="space-y-6">
+      {data.lots.length === 0 ? (
+        <EmptyState
+          title="Sin lotes disponibles"
+          description="Registra una compra confirmada para agregar stock."
+        />
+      ) : (
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+            <span>
+              <span className="text-muted-foreground">Unidades en lotes: </span>
+              <span className="font-semibold">{formatUnits(summary.units)}</span>
+            </span>
+            <span>
+              <span className="text-muted-foreground">Costo del inventario: </span>
+              <span className="font-semibold">{formatCurrency(summary.cost)}</span>
+            </span>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha de compra</TableHead>
+                <TableHead className="text-right">Disponible</TableHead>
+                <TableHead className="text-right">Costo unitario</TableHead>
+                <TableHead className="text-right">Precio sugerido</TableHead>
+                <TableHead className="text-right">Compra</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.lots.map((lot, index) => (
+                <TableRow key={lot.purchase_item_id}>
+                  <TableCell className="whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      {formatShortDate(lot.purchase_date)}
+                      {index === 0 ? (
+                        <Badge
+                          variant="secondary"
+                          title="La próxima venta sale de este lote"
+                        >
+                          Siguiente
+                        </Badge>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">
+                    {formatUnits(lot.remaining_quantity)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(lot.unit_cost)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(lot.suggested_unit_price)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Link
+                      to={`/purchases/${lot.purchase_id}`}
+                      className="text-sm font-medium underline-offset-4 hover:underline"
                     >
-                      Siguiente
-                    </Badge>
-                  ) : null}
-                </div>
-              </TableCell>
-              <TableCell className="text-right font-semibold">
-                {formatUnits(lot.remaining_quantity)}
-              </TableCell>
-              <TableCell className="text-right">
-                {formatCurrency(lot.unit_cost)}
-              </TableCell>
-              <TableCell className="text-right">
-                {formatCurrency(lot.suggested_unit_price)}
-              </TableCell>
-              <TableCell className="text-right">
-                <Link
-                  to={`/purchases/${lot.purchase_id}`}
-                  className="text-sm font-medium underline-offset-4 hover:underline"
+                      Ver
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      {data.sold_out_lots?.length ? (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold">Lotes agotados</h3>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha de compra</TableHead>
+                <TableHead className="text-right">Comprado</TableHead>
+                <TableHead className="text-right">Costo unitario</TableHead>
+                <TableHead className="text-right">Compra</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.sold_out_lots.map((lot) => (
+                <TableRow
+                  key={lot.purchase_item_id}
+                  className="text-muted-foreground"
                 >
-                  Ver
-                </Link>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                  <TableCell className="whitespace-nowrap">
+                    {formatShortDate(lot.purchase_date)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {formatUnits(lot.quantity)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(lot.unit_cost)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Link
+                      to={`/purchases/${lot.purchase_id}`}
+                      className="text-sm font-medium underline-offset-4 hover:underline"
+                    >
+                      Ver
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : null}
     </div>
   );
 };
