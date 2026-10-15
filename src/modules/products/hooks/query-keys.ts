@@ -14,4 +14,5 @@ export const productKeys = {
     [...productKeys.all, "for-sale", params] as const,
   detail: (id: string) => [...productKeys.all, "detail", id] as const,
   lots: (id: string) => [...productKeys.detail(id), "lots"] as const,
+  capital: () => [...productKeys.all, "capital"] as const,
 };

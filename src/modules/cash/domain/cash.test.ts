@@ -3,8 +3,20 @@ import { describe, expect, it } from "vitest";
 import {
   formatMovementDate,
   getCashMovementTypeBadge,
+  netCapital,
   signedAmount,
 } from "./cash";
+
+describe("netCapital", () => {
+  it("adds cash, inventory and receivables and subtracts the partner debt", () => {
+    expect(
+      netCapital(
+        { balance: "100.50", owner_balance: "40.00" },
+        { inventory_value: "200.25", receivable: "60.00" },
+      ),
+    ).toBeCloseTo(320.75);
+  });
+});
 
 describe("signedAmount", () => {
   it("keeps inflows positive", () => {

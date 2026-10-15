@@ -28,6 +28,19 @@ export interface CashSummary {
   owner_balance: string;
 }
 
+/**
+ * Cash + inventory + receivables, minus what the business owes the partner
+ * (`owner_balance`).
+ */
+export const netCapital = (
+  summary: CashSummary,
+  totals: { inventory_value: string; receivable: string },
+): number =>
+  Number(summary.balance) +
+  Number(totals.inventory_value) +
+  Number(totals.receivable) -
+  Number(summary.owner_balance);
+
 export const cashMovementTypeBadges: Record<CashMovementType, StatusBadgeInfo> =
   {
     entrada: { label: "Entrada", variant: "default" },
