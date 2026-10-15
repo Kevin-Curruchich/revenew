@@ -31,6 +31,7 @@ import {
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { StatCard } from "@/modules/dashboard/components/StatCard";
+import { CapitalCard } from "../components/CapitalCard";
 import {
   formatMovementDate,
   getCashMovementTypeBadge,
@@ -104,6 +105,8 @@ export const CashPage = () => {
           }
         />
       </div>
+
+      <CapitalCard />
 
       <Card>
         <CardHeader>
