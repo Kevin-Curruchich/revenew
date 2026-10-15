@@ -47,7 +47,7 @@ const toFormValues = (product?: Product): ProductFormValues => ({
   earningPercent: Number(product?.earning_percent ?? 0),
   earningFeeAmount: Number(product?.earning_fee_amount ?? 0),
   stock: Number(product?.stock ?? 0),
-  min_stock: product?.min_stock ?? 0,
+  min_stock: Number(product?.min_stock ?? 0),
   status: product?.status ?? "active",
 });
 

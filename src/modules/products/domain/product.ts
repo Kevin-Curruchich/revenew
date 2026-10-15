@@ -1,3 +1,4 @@
+import type { Decimal } from "@/lib/api-types";
 export type ProductStatus = "active" | "inactive";
 export type StockAlertStatus = "low_stock" | "out_of_stock" | "in_stock";
 export type ProductEarningMode = "percent" | "fee";
@@ -8,11 +9,11 @@ export interface Product {
   name: string;
   description: string | null;
   earning_mode: ProductEarningMode;
-  earning_percent: number;
-  earning_fee_amount: number;
+  earning_percent: Decimal;
+  earning_fee_amount: Decimal;
   /** Decimal as string, e.g. "6.00". */
   stock: string;
-  min_stock: number;
+  min_stock: Decimal;
   status: ProductStatus;
   created_at: string;
   updated_at: string;

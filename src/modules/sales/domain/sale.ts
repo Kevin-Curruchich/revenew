@@ -1,3 +1,4 @@
+import type { Decimal } from "@/lib/api-types";
 import type { StatusBadgeInfo } from "@/components/shared/StatusBadge";
 import type { ProductEarningMode } from "@/modules/products/domain/product";
 
@@ -6,28 +7,28 @@ export interface SaleItemAllocation {
   id: string;
   purchase_item_id: string;
   purchase_id: string;
-  quantity_allocated: number | string;
-  unit_cost_snapshot: number | string;
+  quantity_allocated: Decimal;
+  unit_cost_snapshot: Decimal;
   lot_purchase_date: string;
 }
 
 export interface SaleItem {
   id: string;
   product_id: string;
-  quantity: number;
-  unit_price: number;
-  subtotal: number;
+  quantity: Decimal;
+  unit_price: Decimal;
+  subtotal: Decimal;
   product_name: string;
   product_sku: string;
   product_status: string;
-  cost_basis_unit?: number;
-  gross_profit_unit?: number;
-  gross_profit_total?: number;
+  cost_basis_unit?: Decimal;
+  gross_profit_unit?: Decimal;
+  gross_profit_total?: Decimal;
   is_price_overridden?: boolean;
   pricing_exception_reason?: string | null;
   product_earning_mode?: ProductEarningMode;
-  product_earning_percent?: number;
-  product_earning_fee_amount?: number;
+  product_earning_percent?: Decimal;
+  product_earning_fee_amount?: Decimal;
   allocations?: SaleItemAllocation[];
 }
 
@@ -36,7 +37,7 @@ export interface Sale {
   customer_id: string;
   user_id: string;
   date: string;
-  total: number;
+  total: Decimal;
   is_payment_pending: boolean;
   items: SaleItem[];
   created_at: string;

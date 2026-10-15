@@ -1,3 +1,4 @@
+import type { Decimal } from "@/lib/api-types";
 import type {
   FollowUpItem,
   FollowUpStatus,
@@ -16,7 +17,7 @@ export interface PriorityCustomer {
 
 export interface DashboardSummary {
   totalCustomers: number;
-  salesThisMonth: number;
+  salesThisMonth: Decimal;
   pendingFollowUps: number;
   upcomingPurchases7Days: number;
   /** Receivables: sales still pending payment, any date. Decimal as string. */

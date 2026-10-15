@@ -1,3 +1,4 @@
+import type { Decimal } from "@/lib/api-types";
 import type { StatusBadgeInfo } from "@/components/shared/StatusBadge";
 
 export type PurchaseStatus = "draft" | "confirmed" | "cancelled";
@@ -5,22 +6,22 @@ export type PurchaseStatus = "draft" | "confirmed" | "cancelled";
 export interface PurchaseItem {
   id: string;
   product_id: string;
-  quantity: number;
-  unit_cost: number;
-  subtotal: number;
+  quantity: Decimal;
+  unit_cost: Decimal;
+  subtotal: Decimal;
   product_name: string;
   product_sku: string;
   product_status?: string;
   product_earning_mode?: "percent" | "fee";
-  product_earning_percent?: number;
-  product_earning_fee_amount?: number;
+  product_earning_percent?: Decimal;
+  product_earning_fee_amount?: Decimal;
 }
 
 export interface Purchase {
   id: string;
   supplier_name: string;
   date: string;
-  total: number;
+  total: Decimal;
   status: PurchaseStatus;
   items: PurchaseItem[];
   created_at: string;
