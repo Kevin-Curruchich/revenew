@@ -37,7 +37,8 @@ const buildProductOptions = (
         id: product.id,
         name: product.name,
         sku: product.sku,
-        stock: product.stock,
+        // A number, so the "Sin stock" check (=== 0) works on "0.00".
+        stock: Number(product.stock),
         suggestedUnitPrice: getSuggestedUnitPrice(product),
       },
     ]),

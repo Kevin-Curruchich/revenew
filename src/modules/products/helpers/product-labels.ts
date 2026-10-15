@@ -23,8 +23,10 @@ export const getStockAlertStatus = (
   product: Pick<Product, "stock" | "min_stock" | "stock_alert_status">,
 ): StockAlertStatus => {
   if (product.stock_alert_status) return product.stock_alert_status;
-  if (product.stock <= 0) return "out_of_stock";
-  if (product.stock <= product.min_stock) return "low_stock";
+  // Decimals arrive as strings: compare numbers, not text ("10.00" < "6.00").
+  const stock = Number(product.stock);
+  if (stock <= 0) return "out_of_stock";
+  if (stock <= Number(product.min_stock)) return "low_stock";
   return "in_stock";
 };
 
