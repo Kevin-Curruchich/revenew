@@ -30,7 +30,7 @@ export const toCustomerOption = (customer: Customer): MentionOption => ({
 });
 
 export const toProductOption = (product: ProductForSale): MentionOption => {
-  const sinStock = product.stock <= 0;
+  const sinStock = Number(product.stock) <= 0;
   const price = product.first_available_lot?.suggested_unit_price;
   return {
     tipo: "producto",

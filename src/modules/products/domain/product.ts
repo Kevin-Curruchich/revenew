@@ -10,7 +10,8 @@ export interface Product {
   earning_mode: ProductEarningMode;
   earning_percent: number;
   earning_fee_amount: number;
-  stock: number;
+  /** Decimal as string, e.g. "6.00". */
+  stock: string;
   min_stock: number;
   status: ProductStatus;
   created_at: string;
@@ -38,7 +39,8 @@ export interface ProductForSale {
   id: string;
   sku: string;
   name: string;
-  stock: number;
+  /** Decimal as string, e.g. "6.00". */
+  stock: string;
   earning_mode: ProductEarningMode;
   earning_percent: string;
   earning_fee_amount: string;

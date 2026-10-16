@@ -20,7 +20,7 @@ export interface PurchaseProductOption {
   id: string;
   name: string;
   sku: string;
-  stock?: number;
+  stock?: string;
 }
 
 interface PurchaseItemRowProps {
