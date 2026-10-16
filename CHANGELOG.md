@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.18.1](https://github.com/Kevin-Curruchich/revenew/compare/v0.18.0...v0.18.1) (2026-10-16)
+
+
+### Bug Fixes
+
+* **products:** treat stock as the decimal string the API sends ([e4d6333](https://github.com/Kevin-Curruchich/revenew/commit/e4d6333ae6dfe6c72db7032ca19128d42dbc5225))
+
 ## [0.18.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.17.0...v0.18.0) (2026-10-15)
 
 
