@@ -61,7 +61,7 @@ export const PurchaseItemRow = ({
             <p className="text-sm text-muted-foreground">
               SKU: {selectedProduct.sku}
               {selectedProduct.stock !== undefined
-                ? ` · Stock actual: ${selectedProduct.stock}`
+                ? ` · Stock actual: ${Number(selectedProduct.stock)}`
                 : null}
             </p>
           ) : null}

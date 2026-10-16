@@ -41,8 +41,9 @@ export const toPurchaseFormValues = (
         purchaseDate: purchase.date,
         items: purchase.items.map((item) => ({
           productId: item.product_id,
-          quantity: item.quantity,
-          unitCost: item.unit_cost,
+          // The API sends decimals as strings; the form works with numbers.
+          quantity: Number(item.quantity),
+          unitCost: Number(item.unit_cost),
         })),
       }
     : {

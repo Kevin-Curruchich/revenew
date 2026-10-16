@@ -1,3 +1,4 @@
+import type { Decimal } from "@/lib/api-types";
 export type FollowUpStatus =
   | "overdue"
   | "urgent"
@@ -12,13 +13,13 @@ export interface FollowUpItem {
   due_date: string | null;
   product_id: string;
   product_name: string;
-  avg_interval_days: number | null;
+  avg_interval_days: Decimal | null;
   last_purchase_date: string | null; // YYYY-MM-DD
-  last_quantity: number;
+  last_quantity: Decimal;
   estimated_next_purchase: string | null; // YYYY-MM-DD
   days_until: number | null;
-  current_stock: number;
-  min_stock: number;
+  current_stock: Decimal;
+  min_stock: Decimal;
   stock_alert: boolean;
 }
 

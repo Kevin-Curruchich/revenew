@@ -134,7 +134,7 @@ export const ProductListPage = () => {
                             variant={stockAlertBadge[stockAlert].variant}
                             title={stockAlertBadge[stockAlert].label}
                           >
-                            {product.stock} unid.
+                            {Number(product.stock)} unid.
                           </Badge>
                         </TableCell>
                         <TableCell>
