@@ -2,7 +2,7 @@ import { createBrowserRouter, Navigate, type RouteObject } from "react-router";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { FullPageLoader } from "@/components/ui/loading-spinner";
-import { AuthGuard, LoginGuard } from "@/modules/auth";
+import { AdminGuard, AuthGuard, LoginGuard } from "@/modules/auth";
 import { NotFoundPage, RouteErrorPage } from "./RouteErrorPage";
 
 /**
@@ -26,6 +26,20 @@ export const appRouter = createBrowserRouter([
             index: true,
             ...page(() =>
               import("@/modules/auth/pages/LoginPage").then((m) => m.LoginPage),
+            ),
+          },
+        ],
+      },
+      {
+        path: "/signup",
+        element: <LoginGuard />,
+        children: [
+          {
+            index: true,
+            ...page(() =>
+              import("@/modules/auth/pages/SignUpPage").then(
+                (m) => m.SignUpPage,
+              ),
             ),
           },
         ],
@@ -162,9 +176,7 @@ export const appRouter = createBrowserRouter([
               },
               {
                 path: "cash",
-                ...page(() =>
-                  import("@/modules/cash").then((m) => m.CashPage),
-                ),
+                ...page(() => import("@/modules/cash").then((m) => m.CashPage)),
               },
               {
                 path: "follow-up",
@@ -197,6 +209,17 @@ export const appRouter = createBrowserRouter([
                 ...page(() =>
                   import("@/modules/calendar").then((m) => m.CalendarPage),
                 ),
+              },
+              {
+                element: <AdminGuard />,
+                children: [
+                  {
+                    path: "team",
+                    ...page(() =>
+                      import("@/modules/team").then((m) => m.TeamPage),
+                    ),
+                  },
+                ],
               },
               { path: "*", element: <NotFoundPage /> },
             ],

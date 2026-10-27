@@ -14,6 +14,12 @@ export const AuthGuard = () => {
   return <Outlet />;
 };
 
+/** Only lets admins through; everyone else goes to the dashboard. */
+export const AdminGuard = () => {
+  const isAdmin = useAuthStore((state) => state.user?.role === "admin");
+  return isAdmin ? <Outlet /> : <Navigate to="/dashboard" replace />;
+};
+
 /** Prevents authenticated users from seeing the login page. */
 export const LoginGuard = () => {
   const isAuthenticated = useAuthStore((state) => state.user !== null);

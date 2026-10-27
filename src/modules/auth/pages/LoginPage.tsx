@@ -1,4 +1,5 @@
 import { useTransition, type FormEvent } from "react";
+import { Link } from "react-router";
 import {
   Card,
   CardContent,
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormErrorAlert } from "@/components/shared/FormErrorAlert";
+import { PasswordInput } from "@/components/shared/PasswordInput";
 import { useAuthStore } from "../store/auth.store";
 
 export const LoginPage = () => {
@@ -57,10 +59,9 @@ export const LoginPage = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
-              <Input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 autoComplete="current-password"
                 placeholder="••••••••"
                 required
@@ -70,6 +71,15 @@ export const LoginPage = () => {
             <Button className="w-full" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Iniciando..." : "Iniciar Sesión"}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              ¿Tu comercio aún no usa Revenew?{" "}
+              <Link
+                to="/signup"
+                className="font-medium text-foreground underline"
+              >
+                Crear cuenta
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>

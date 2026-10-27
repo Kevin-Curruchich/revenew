@@ -2,6 +2,7 @@ import { signOut } from "firebase/auth";
 
 import { API_BASE_URL } from "@/api/revenewApi";
 import { auth } from "@/lib/firebase";
+import { getAccountBlockedMessage, useAuthStore } from "@/modules/auth";
 import type { AgentEvent, Decision } from "../domain/agent";
 import type { Comando, Mencion } from "../domain/mentions";
 import { createSseParser, toAgentEvent } from "../domain/sse-parser";
@@ -91,7 +92,10 @@ export const streamAgent = async (
   }
 
   if (!response.ok || !response.body) {
-    throw new AgentStreamError(response.status, await readDetail(response));
+    const detail = await readDetail(response);
+    const blocked = getAccountBlockedMessage(response.status, detail);
+    if (blocked) await useAuthStore.getState().endSession(blocked);
+    throw new AgentStreamError(response.status, detail);
   }
 
   onOpen?.();

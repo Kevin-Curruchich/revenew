@@ -45,6 +45,7 @@ const navItems = [
   { path: "/profit", label: "Ganancias", icon: "📈" },
   { path: "/follow-up", label: "Seguimiento", icon: "📋" },
   { path: "/calendar", label: "Calendario", icon: "📅" },
+  { path: "/team", label: "Equipo", icon: "🧑‍🤝‍🧑", adminOnly: true },
 ];
 
 interface NavLinksProps {
@@ -60,31 +61,37 @@ const NavLinks = ({
   className,
   itemClassName,
   collapsed = false,
-}: NavLinksProps) => (
-  <nav
-    className={cn("flex flex-col gap-2 p-4", collapsed && "px-2", className)}
-  >
-    {navItems.map((item) => (
-      <NavLink
-        key={item.path}
-        to={item.path}
-        onClick={onNavigate}
-        title={collapsed ? item.label : undefined}
-        className={({ isActive }) =>
-          cn(
-            buttonVariants({ variant: isActive ? "default" : "ghost" }),
-            "w-full",
-            collapsed ? "justify-center px-0" : "justify-start",
-            itemClassName,
-          )
-        }
-      >
-        <span aria-hidden="true">{item.icon}</span>
-        <span className={cn(collapsed && "sr-only")}>{item.label}</span>
-      </NavLink>
-    ))}
-  </nav>
-);
+}: NavLinksProps) => {
+  const isAdmin = useAuthStore((state) => state.user?.role === "admin");
+
+  return (
+    <nav
+      className={cn("flex flex-col gap-2 p-4", collapsed && "px-2", className)}
+    >
+      {navItems
+        .filter((item) => isAdmin || !item.adminOnly)
+        .map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            onClick={onNavigate}
+            title={collapsed ? item.label : undefined}
+            className={({ isActive }) =>
+              cn(
+                buttonVariants({ variant: isActive ? "default" : "ghost" }),
+                "w-full",
+                collapsed ? "justify-center px-0" : "justify-start",
+                itemClassName,
+              )
+            }
+          >
+            <span aria-hidden="true">{item.icon}</span>
+            <span className={cn(collapsed && "sr-only")}>{item.label}</span>
+          </NavLink>
+        ))}
+    </nav>
+  );
+};
 
 export const AppLayout = () => {
   const user = useAuthStore((state) => state.user);

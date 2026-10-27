@@ -41,6 +41,11 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
           <span className="truncate text-xs font-normal text-muted-foreground">
             {user.email}
           </span>
+          {user.business_name ? (
+            <span className="truncate text-xs font-normal text-muted-foreground">
+              {user.business_name}
+            </span>
+          ) : null}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {/* The auth guard redirects to /login once the session ends. */}
