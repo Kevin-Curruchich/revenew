@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.19.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.18.1...v0.19.0) (2026-10-27)
+
+
+### Features
+
+* **dashboard:** drop the pending follow-up and upcoming purchases cards ([f74143c](https://github.com/Kevin-Curruchich/revenew/commit/f74143c24cf15f2eccfbb4da343d37c392f19f5d))
+* **dashboard:** show this month's profit instead of total customers ([16cae17](https://github.com/Kevin-Curruchich/revenew/commit/16cae1728daee7bb94222a298ec4f45b7dd401c7))
+
+
+### Bug Fixes
+
+* **dates:** show every date as DD/MM/YYYY ([a6653c7](https://github.com/Kevin-Curruchich/revenew/commit/a6653c7cb5563cb82b54996ba4df874762924df5))
+* **forms:** go back in history so list filters are kept ([f33fb14](https://github.com/Kevin-Curruchich/revenew/commit/f33fb1491df4c0bb204ffa7bae95e42578f5f1e8))
+* type every API decimal as number | string ([fe61214](https://github.com/Kevin-Curruchich/revenew/commit/fe6121430b5b792b50b66814f58cc928bd98218d))
+
 ### [0.18.1](https://github.com/Kevin-Curruchich/revenew/compare/v0.18.0...v0.18.1) (2026-10-16)
 
 
