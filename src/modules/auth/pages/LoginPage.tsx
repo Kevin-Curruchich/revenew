@@ -1,4 +1,5 @@
 import { useTransition, type FormEvent } from "react";
+import { Link } from "react-router";
 import {
   Card,
   CardContent,
@@ -70,6 +71,15 @@ export const LoginPage = () => {
             <Button className="w-full" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Iniciando..." : "Iniciar Sesión"}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              ¿Tu comercio aún no usa Revenew?{" "}
+              <Link
+                to="/signup"
+                className="font-medium text-foreground underline"
+              >
+                Crear cuenta
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>

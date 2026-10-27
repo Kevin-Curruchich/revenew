@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { isAxiosError } from "axios";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -7,10 +8,14 @@ import {
   type User as FirebaseUser,
 } from "firebase/auth";
 
+import { revenewApi } from "@/api/revenewApi";
+import { getErrorMessage } from "@/lib/errors";
 import { auth } from "@/lib/firebase";
 import { queryClient } from "@/lib/query-client";
 
 import { getUserProfile } from "../actions/get-user-profile";
+import { signUp, type UserSignUpRequest } from "../actions/sign-up";
+import { getAccountBlockedMessage } from "../domain/account-blocked";
 import { getAuthErrorMessage } from "../helpers/get-auth-error-message";
 import type { User } from "../domain/user";
 
@@ -30,7 +35,11 @@ interface AuthState {
   /** Subscribes to Firebase auth changes. Returns the unsubscribe function. */
   initialize: () => Unsubscribe;
   login: (email: string, password: string) => Promise<void>;
+  /** Creates the business + admin, then signs in. */
+  signUp: (data: UserSignUpRequest) => Promise<void>;
   logout: () => Promise<void>;
+  /** Ends the session and shows `message` on the login page. */
+  endSession: (message: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -38,7 +47,7 @@ interface AuthState {
 // user; share the in-flight request so `/auth/me` is only called once.
 let pendingProfileSync: { uid: string; promise: Promise<void> } | null = null;
 
-export const useAuthStore = create<AuthState>((set) => {
+export const useAuthStore = create<AuthState>((set, get) => {
   const syncProfile = (firebaseUser: FirebaseUser): Promise<void> => {
     if (pendingProfileSync?.uid === firebaseUser.uid) {
       return pendingProfileSync.promise;
@@ -48,7 +57,7 @@ export const useAuthStore = create<AuthState>((set) => {
       .then((user) => {
         set({ user, status: "authenticated", error: null });
       })
-      .catch(async () => {
+      .catch(async (error) => {
         // A Firebase session without a backend profile is unusable: end it so
         // the user can try again from the login page.
         await signOut(auth);
@@ -56,6 +65,11 @@ export const useAuthStore = create<AuthState>((set) => {
           user: null,
           status: "unauthenticated",
           error:
+            (isAxiosError(error) &&
+              getAccountBlockedMessage(
+                error.response?.status,
+                error.response?.data?.detail,
+              )) ||
             "No se pudo cargar tu perfil. Intenta iniciar sesión de nuevo.",
         });
       })
@@ -72,8 +86,23 @@ export const useAuthStore = create<AuthState>((set) => {
     status: "initializing",
     error: null,
 
-    initialize: () =>
-      onAuthStateChanged(auth, (firebaseUser) => {
+    initialize: () => {
+      // A user removed or deactivated mid-session gets 403 on any request.
+      const interceptor = revenewApi.interceptors.response.use(
+        undefined,
+        async (error) => {
+          const message =
+            isAxiosError(error) &&
+            getAccountBlockedMessage(
+              error.response?.status,
+              error.response?.data?.detail,
+            );
+          if (message && get().user) await get().endSession(message);
+          return Promise.reject(error);
+        },
+      );
+
+      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
         if (firebaseUser) {
           void syncProfile(firebaseUser);
           return;
@@ -84,7 +113,13 @@ export const useAuthStore = create<AuthState>((set) => {
         // `error` is intentionally preserved so the login page can show why
         // the session ended.
         set({ user: null, status: "unauthenticated" });
-      }),
+      });
+
+      return () => {
+        unsubscribe();
+        revenewApi.interceptors.response.eject(interceptor);
+      };
+    },
 
     login: async (email, password) => {
       set({ error: null });
@@ -100,8 +135,24 @@ export const useAuthStore = create<AuthState>((set) => {
       }
     },
 
+    signUp: async (data) => {
+      set({ error: null });
+      try {
+        await signUp(data);
+      } catch (error) {
+        set({ error: getErrorMessage(error, "No se pudo crear la cuenta.") });
+        return;
+      }
+      await get().login(data.email, data.password);
+    },
+
     logout: async () => {
       set({ error: null });
+      await signOut(auth);
+    },
+
+    endSession: async (message) => {
+      set({ error: message });
       await signOut(auth);
     },
 
