@@ -1,4 +1,4 @@
-import { useEffect, useTransition, type FormEvent } from "react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { Link } from "react-router";
 import {
   Card,
@@ -10,7 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FieldError } from "@/components/shared/FormField";
 import { FormErrorAlert } from "@/components/shared/FormErrorAlert";
+import { PasswordInput } from "@/components/shared/PasswordInput";
 import { useAuthStore } from "../store/auth.store";
 
 export const SignUpPage = () => {
@@ -18,6 +20,7 @@ export const SignUpPage = () => {
   const error = useAuthStore((state) => state.error);
   const clearError = useAuthStore((state) => state.clearError);
   const [isSubmitting, startTransition] = useTransition();
+  const [passwordMismatch, setPasswordMismatch] = useState(false);
 
   // Don't carry an error over from the login page.
   useEffect(() => clearError(), [clearError]);
@@ -26,6 +29,12 @@ export const SignUpPage = () => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const field = (name: string) => String(formData.get(name) ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+
+    const mismatch =
+      password !== String(formData.get("confirm_password") ?? "");
+    setPasswordMismatch(mismatch);
+    if (mismatch) return;
 
     // On success the auth store signs in and <LoginGuard /> redirects.
     startTransition(() =>
@@ -33,7 +42,7 @@ export const SignUpPage = () => {
         business_name: field("business_name"),
         display_name: field("display_name") || null,
         email: field("email"),
-        password: String(formData.get("password") ?? ""),
+        password,
       }),
     );
   };
@@ -85,15 +94,38 @@ export const SignUpPage = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
-              <Input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 autoComplete="new-password"
                 placeholder="Mínimo 6 caracteres"
                 minLength={6}
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm_password">Confirmar contraseña</Label>
+              <PasswordInput
+                id="confirm_password"
+                name="confirm_password"
+                autoComplete="new-password"
+                minLength={6}
+                required
+                aria-invalid={passwordMismatch || undefined}
+                aria-describedby={
+                  passwordMismatch ? "confirm_password-error" : undefined
+                }
+                onChange={() => setPasswordMismatch(false)}
+              />
+              <div id="confirm_password-error">
+                <FieldError
+                  message={
+                    passwordMismatch
+                      ? "Las contraseñas no coinciden."
+                      : undefined
+                  }
+                />
+              </div>
             </div>
             <FormErrorAlert message={error} />
             <Button className="w-full" type="submit" disabled={isSubmitting}>

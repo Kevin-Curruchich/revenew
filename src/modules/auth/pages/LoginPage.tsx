@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormErrorAlert } from "@/components/shared/FormErrorAlert";
+import { PasswordInput } from "@/components/shared/PasswordInput";
 import { useAuthStore } from "../store/auth.store";
 
 export const LoginPage = () => {
@@ -58,10 +59,9 @@ export const LoginPage = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
-              <Input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 autoComplete="current-password"
                 placeholder="••••••••"
                 required
