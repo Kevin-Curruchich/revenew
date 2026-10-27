@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { NextPurchase } from "../domain/customer";
+import { formatShortDate } from "@/lib/dates";
 
 export const CustomerNextPurchases = ({
   purchases,
@@ -43,7 +44,7 @@ export const CustomerNextPurchases = ({
               <TableCell className="font-medium">
                 {purchase.product_name}
               </TableCell>
-              <TableCell>{purchase.estimated_date}</TableCell>
+              <TableCell>{formatShortDate(purchase.estimated_date)}</TableCell>
               <TableCell>{purchase.last_quantity}</TableCell>
               <TableCell>{purchase.avg_interval_days}</TableCell>
             </TableRow>

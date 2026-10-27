@@ -1,11 +1,7 @@
 import type { StatusBadgeInfo } from "@/components/shared/StatusBadge";
 
 export type CashMovementType =
-  | "entrada"
-  | "salida"
-  | "aporte_socio"
-  | "retiro_socio"
-  | "saldo_inicial";
+  "entrada" | "salida" | "aporte_socio" | "retiro_socio" | "saldo_inicial";
 
 export interface CashMovement {
   id: string;
@@ -68,11 +64,13 @@ export const signedAmount = (
 const movementDateFormatter = new Intl.DateTimeFormat("es-GT", {
   timeZone: "America/Guatemala",
   day: "2-digit",
-  month: "short",
+  month: "2-digit",
   year: "numeric",
   hour: "2-digit",
   minute: "2-digit",
+  hourCycle: "h23",
 });
 
+/** "09/09/2026 21:00" */
 export const formatMovementDate = (value: string): string =>
-  movementDateFormatter.format(new Date(value));
+  movementDateFormatter.format(new Date(value)).replace(", ", " ");

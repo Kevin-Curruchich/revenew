@@ -54,7 +54,7 @@ export const PurchaseFormPage = () => {
   const createPurchase = useCreatePurchase();
   const updatePurchase = useUpdatePurchase();
 
-  const goToList = () => navigate("/purchases");
+  const goToList = () => navigate(-1);
 
   const handleSubmit = async (payload: PurchasePayload) => {
     if (id) {

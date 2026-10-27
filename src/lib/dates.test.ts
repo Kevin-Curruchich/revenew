@@ -4,7 +4,7 @@ import { dateRangePresets, formatShortDate } from "./dates";
 
 describe("formatShortDate", () => {
   it("formats an ISO date in Spanish without shifting the day", () => {
-    expect(formatShortDate("2026-09-30")).toMatch(/^30 sept?\.? 2026$/);
+    expect(formatShortDate("2026-09-30")).toBe("30/09/2026");
   });
 
   it("returns an empty string for missing or invalid values", () => {

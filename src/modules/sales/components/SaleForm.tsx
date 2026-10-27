@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import {
   Controller,
   FormProvider,
@@ -64,6 +64,7 @@ export const SaleForm = ({
   onSubmit,
   summaryExtra,
 }: SaleFormProps) => {
+  const navigate = useNavigate();
   const isEditing = !!sale;
 
   const form = useForm<SaleFormValues>({
@@ -292,8 +293,13 @@ export const SaleForm = ({
                     ? "Actualizar Venta"
                     : "Registrar Venta"}
               </Button>
-              <Button variant="outline" className="w-full" asChild>
-                <Link to="/sales">Cancelar</Link>
+              <Button
+                variant="outline"
+                className="w-full"
+                type="button"
+                onClick={() => navigate(-1)}
+              >
+                Cancelar
               </Button>
             </div>
           </div>

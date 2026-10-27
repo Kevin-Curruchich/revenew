@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -47,7 +47,7 @@ const toFormValues = (product?: Product): ProductFormValues => ({
   earningPercent: Number(product?.earning_percent ?? 0),
   earningFeeAmount: Number(product?.earning_fee_amount ?? 0),
   stock: Number(product?.stock ?? 0),
-  min_stock: product?.min_stock ?? 0,
+  min_stock: Number(product?.min_stock ?? 0),
   status: product?.status ?? "active",
 });
 
@@ -57,6 +57,7 @@ interface ProductFormProps {
 }
 
 export const ProductForm = ({ product, onSubmit }: ProductFormProps) => {
+  const navigate = useNavigate();
   const isEditing = !!product;
   const {
     register,
@@ -219,8 +220,13 @@ export const ProductForm = ({ product, onSubmit }: ProductFormProps) => {
       <FormErrorAlert message={errors.root?.message} />
 
       <div className="flex flex-col-reverse justify-end gap-4 pt-4 sm:flex-row">
-        <Button variant="outline" className="w-full sm:w-auto" asChild>
-          <Link to="/products">Cancelar</Link>
+        <Button
+          variant="outline"
+          className="w-full sm:w-auto"
+          type="button"
+          onClick={() => navigate(-1)}
+        >
+          Cancelar
         </Button>
         <Button
           type="submit"

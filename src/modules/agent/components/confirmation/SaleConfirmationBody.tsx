@@ -15,6 +15,7 @@ import {
 import { formatQuantity } from "../../domain/labels";
 import { ConfirmationField } from "./ConfirmationField";
 import { saleEditSchema, type SaleEditValues } from "./edit-schemas";
+import { formatShortDate } from "@/lib/dates";
 
 const ItemWarnings = ({ warnings }: { warnings: string[] }) =>
   warnings.length > 0 ? (
@@ -72,7 +73,7 @@ const SaleLots = ({ items }: { items: SalePreviewItem[] }) => {
                 <tbody>
                   {item.lotes.map((lot) => (
                     <tr key={lot.purchase_item_id}>
-                      <td>{lot.purchase_date}</td>
+                      <td>{formatShortDate(lot.purchase_date)}</td>
                       <td className="text-right">
                         {formatCurrency(lot.unit_cost)}
                       </td>
@@ -102,7 +103,9 @@ const SaleSummary = ({ confirmation }: { confirmation: SaleConfirmation }) => {
         <ConfirmationField label="Cliente">
           {preview.customer_name}
         </ConfirmationField>
-        <ConfirmationField label="Fecha">{preview.date}</ConfirmationField>
+        <ConfirmationField label="Fecha">
+          {formatShortDate(preview.date)}
+        </ConfirmationField>
       </dl>
 
       <ul className="divide-y rounded-md border text-sm">

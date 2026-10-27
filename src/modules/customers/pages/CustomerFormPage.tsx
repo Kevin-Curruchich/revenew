@@ -34,7 +34,7 @@ export const CustomerFormPage = () => {
     } else {
       await createCustomer.mutateAsync(payload);
     }
-    navigate("/customers");
+    navigate(-1);
   };
 
   if (isEditing && customerQuery.isPending) {

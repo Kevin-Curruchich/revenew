@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -49,6 +49,7 @@ interface CustomerFormProps {
 }
 
 export const CustomerForm = ({ customer, onSubmit }: CustomerFormProps) => {
+  const navigate = useNavigate();
   const isEditing = !!customer;
   const {
     register,
@@ -144,8 +145,13 @@ export const CustomerForm = ({ customer, onSubmit }: CustomerFormProps) => {
               ? "Actualizar Cliente"
               : "Crear Cliente"}
         </Button>
-        <Button variant="outline" className="w-full sm:w-auto" asChild>
-          <Link to="/customers">Cancelar</Link>
+        <Button
+          variant="outline"
+          className="w-full sm:w-auto"
+          type="button"
+          onClick={() => navigate(-1)}
+        >
+          Cancelar
         </Button>
       </div>
     </form>

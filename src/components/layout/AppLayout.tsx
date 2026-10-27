@@ -37,10 +37,10 @@ const useSidebarCollapsed = () => {
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: "📊" },
   { path: "/agent", label: "Asistente", icon: "🤖" },
+  { path: "/sales", label: "Ventas", icon: "💰" },
+  { path: "/customers", label: "Clientes", icon: "👥" },
   { path: "/products", label: "Productos", icon: "📦" },
   { path: "/purchases", label: "Compras", icon: "🛒" },
-  { path: "/customers", label: "Clientes", icon: "👥" },
-  { path: "/sales", label: "Ventas", icon: "💰" },
   { path: "/cash", label: "Caja", icon: "💵" },
   { path: "/profit", label: "Ganancias", icon: "📈" },
   { path: "/follow-up", label: "Seguimiento", icon: "📋" },

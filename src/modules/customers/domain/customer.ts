@@ -1,3 +1,4 @@
+import type { Decimal } from "@/lib/api-types";
 import type { SaleItem } from "@/modules/sales/domain/sale";
 
 export interface LastPurchase {
@@ -6,7 +7,7 @@ export interface LastPurchase {
   created_at: string;
   customer_id: string;
   user_id: string;
-  total: number;
+  total: Decimal;
   updated_at: string;
   items: SaleItem[];
   date_formatted: string;
@@ -17,9 +18,9 @@ export interface NextPurchase {
   product_name: string;
   product_sku: string;
   estimated_date: string;
-  avg_interval_days: number;
+  avg_interval_days: Decimal;
   last_purchase_date: string;
-  last_quantity: number;
+  last_quantity: Decimal;
 }
 
 export interface Customer {

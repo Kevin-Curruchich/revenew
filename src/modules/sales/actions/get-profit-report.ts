@@ -1,3 +1,4 @@
+import type { Decimal } from "@/lib/api-types";
 import { revenewApi } from "@/api/revenewApi";
 
 export type ProfitReportGroupBy = "sale" | "customer" | "product";
@@ -9,8 +10,6 @@ export interface GetProfitReportParams {
   limit?: number;
 }
 
-// Decimals arrive as strings from the API.
-type Decimal = number | string;
 
 export interface ProfitReportItem {
   /** Id of the sale, customer or product, depending on `group_by`. */

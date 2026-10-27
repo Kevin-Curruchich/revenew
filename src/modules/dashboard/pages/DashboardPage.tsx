@@ -16,9 +16,22 @@ import { FollowUpItemActions } from "@/modules/follow-up/components/FollowUpItem
 import { getFollowUpStatusBadge } from "@/modules/follow-up/helpers/get-follow-up-status-badge";
 import { StatCard } from "../components/StatCard";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
+import {
+  formatShortDate,
+  startOfMonth,
+  toISODate,
+  todayISODate,
+} from "@/lib/dates";
+import { useProfitReport } from "@/modules/sales";
 
 export const DashboardPage = () => {
   const { data, isPending, isError, error, refetch } = useDashboardSummary();
+  // Same params as the profit report's default view, so both share the cache.
+  const profit = useProfitReport({
+    group_by: "product",
+    start_date: toISODate(startOfMonth(new Date())),
+    end_date: todayISODate(),
+  });
 
   if (isPending) {
     return <LoadingState label="Cargando resumen del dashboard..." />;
@@ -39,10 +52,14 @@ export const DashboardPage = () => {
       <PageHeader title="Dashboard" description="Resumen de tu negocio" />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <StatCard label="Total Clientes" value={data.totalCustomers} />
         <StatCard
           label="Ventas Este Mes"
           value={formatCurrency(data.salesThisMonth)}
+        />
+        <StatCard
+          label="Ganancia Este Mes"
+          value={formatCurrency(profit.data?.totals?.gross_profit)}
+          to="/profit"
         />
         <StatCard
           label="Por cobrar"
@@ -53,11 +70,6 @@ export const DashboardPage = () => {
             "ventas pendientes",
           )}
           to="/sales?is_payment_pending=true"
-        />
-        <StatCard label="Seguimiento Pendiente" value={data.pendingFollowUps} />
-        <StatCard
-          label="Compras Próximas (7 días)"
-          value={data.upcomingPurchases7Days}
         />
       </div>
 
@@ -144,7 +156,7 @@ export const DashboardPage = () => {
                             <p className="font-medium">{item.product_name}</p>
                             <p className="text-xs text-muted-foreground">
                               Próxima compra:{" "}
-                              {item.due_date ?? "N/A"}
+                              {formatShortDate(item.due_date) || "N/A"}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">

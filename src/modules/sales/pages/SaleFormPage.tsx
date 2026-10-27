@@ -73,7 +73,7 @@ export const SaleFormPage = () => {
     } else {
       await createSale.mutateAsync(payload);
     }
-    navigate("/sales");
+    navigate(-1);
   };
 
   // Suggested prices come from the products, so wait for them before

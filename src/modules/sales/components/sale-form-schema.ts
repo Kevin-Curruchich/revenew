@@ -102,15 +102,16 @@ export const toSaleFormValues = (
     saleDate: sale.date,
     items: sale.items.map((item) => ({
       productId: item.product_id,
-      quantity: item.quantity,
-      unitPrice: item.unit_price,
+      // The API sends decimals as strings; the form works with numbers.
+      quantity: Number(item.quantity),
+      unitPrice: Number(item.unit_price),
       // Items sold at the suggested price keep that price as reference, so
       // later price changes of the product don't force a reason on edit.
       suggestedUnitPrice: item.is_price_overridden
         ? getSuggestedUnitPrice(
             products.find((product) => product.id === item.product_id),
           )
-        : item.unit_price,
+        : Number(item.unit_price),
       isPriceOverridden: !!item.is_price_overridden,
       pricingExceptionReason: item.pricing_exception_reason ?? "",
     })),

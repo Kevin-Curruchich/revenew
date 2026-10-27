@@ -36,6 +36,7 @@ import {
   getFollowUpStatusBadge,
 } from "../helpers/get-follow-up-status-badge";
 import { useFollowUps } from "../hooks/useFollowUps";
+import { formatShortDate } from "@/lib/dates";
 
 const PAGE_SIZE = 10;
 
@@ -148,7 +149,7 @@ export const FollowUpListPage = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {nextItem?.due_date ?? "N/A"}
+                          {formatShortDate(nextItem?.due_date) || "N/A"}
                         </TableCell>
                         <TableCell>
                           <span
