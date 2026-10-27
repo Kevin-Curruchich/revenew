@@ -42,16 +42,10 @@ const monthShortFormatter = new Intl.DateTimeFormat("es-GT", {
 export const formatMonthShort = (date: Date): string =>
   monthShortFormatter.format(date);
 
-const shortDateFormatter = new Intl.DateTimeFormat("es-GT", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
-
-/** `2026-09-30` -> "30 sept 2026". Empty string for missing/invalid input. */
+/** `2026-09-30` -> "30/09/2026". Empty string for missing/invalid input. */
 export const formatShortDate = (value: string | null | undefined): string => {
   const date = parseISODate(value);
-  return date ? shortDateFormatter.format(date) : "";
+  return date ? dayjs(date).format("DD/MM/YYYY") : "";
 };
 
 export interface ISODateRange {

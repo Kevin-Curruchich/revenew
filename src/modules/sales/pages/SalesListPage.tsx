@@ -42,6 +42,7 @@ import { useCustomers } from "@/modules/customers/hooks/useCustomers";
 import { useProducts } from "@/modules/products/hooks/useProducts";
 import { getPaymentStatusBadge } from "../domain/sale";
 import { useSales } from "../hooks/useSales";
+import { formatShortDate } from "@/lib/dates";
 
 const PAGE_SIZE = 10;
 const ALL_OPTION = "all";
@@ -238,7 +239,7 @@ export const SalesListPage = () => {
                           ) : null}
                         </div>
                       </TableCell>
-                      <TableCell>{sale.date}</TableCell>
+                      <TableCell>{formatShortDate(sale.date)}</TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <Badge variant="outline">

@@ -16,6 +16,7 @@ import { FollowUpItemActions } from "@/modules/follow-up/components/FollowUpItem
 import { getFollowUpStatusBadge } from "@/modules/follow-up/helpers/get-follow-up-status-badge";
 import { StatCard } from "../components/StatCard";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
+import { formatShortDate } from "@/lib/dates";
 
 export const DashboardPage = () => {
   const { data, isPending, isError, error, refetch } = useDashboardSummary();
@@ -144,7 +145,7 @@ export const DashboardPage = () => {
                             <p className="font-medium">{item.product_name}</p>
                             <p className="text-xs text-muted-foreground">
                               Próxima compra:{" "}
-                              {item.due_date ?? "N/A"}
+                              {formatShortDate(item.due_date) || "N/A"}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">

@@ -42,6 +42,7 @@ import {
   type PurchaseStatus,
 } from "../domain/purchase";
 import { usePurchases } from "../hooks/usePurchases";
+import { formatShortDate } from "@/lib/dates";
 
 const PAGE_SIZE = 10;
 const ALL_STATUSES = "all";
@@ -159,7 +160,7 @@ export const PurchasesListPage = () => {
                         {shortId(purchase.id)}
                       </TableCell>
                       <TableCell>{purchase.supplier_name}</TableCell>
-                      <TableCell>{purchase.date}</TableCell>
+                      <TableCell>{formatShortDate(purchase.date)}</TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <Badge variant="outline">

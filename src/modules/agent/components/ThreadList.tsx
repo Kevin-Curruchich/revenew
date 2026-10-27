@@ -16,13 +16,7 @@ import {
   useDeleteThread,
   useRenameThread,
 } from "../hooks/useAgentThreads";
-
-const updatedAtFormatter = new Intl.DateTimeFormat("es-GT", {
-  day: "numeric",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-});
+import dayjs from "dayjs";
 
 const RenameForm = ({
   thread,
@@ -90,7 +84,7 @@ const ThreadRow = ({
       >
         <span className="line-clamp-1">{thread.title}</span>
         <span className="text-xs text-muted-foreground">
-          {updatedAtFormatter.format(new Date(thread.updated_at))}
+          {dayjs(thread.updated_at).format("DD/MM/YYYY HH:mm")}
         </span>
       </NavLink>
       <div className="absolute top-1/2 right-1 flex -translate-y-1/2 opacity-100 md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100">

@@ -25,7 +25,6 @@ describe("getCashMovementTypeBadge", () => {
 describe("formatMovementDate", () => {
   it("shows the date in Guatemala time, not UTC", () => {
     // 03:00 UTC on Sep 10 is still Sep 9 at 21:00 in Guatemala.
-    expect(formatMovementDate("2026-09-10T03:00:00Z")).toMatch(/09/);
-    expect(formatMovementDate("2026-09-10T03:00:00Z")).not.toMatch(/10 sept/);
+    expect(formatMovementDate("2026-09-10T03:00:00Z")).toBe("09/09/2026 21:00");
   });
 });
