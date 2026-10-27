@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import {
   Controller,
   FormProvider,
@@ -57,6 +57,7 @@ export const PurchaseForm = ({
   onSubmit,
   renderStatusActions,
 }: PurchaseFormProps) => {
+  const navigate = useNavigate();
   const isEditing = !!purchase;
   const readOnly = isEditing && !isPurchaseEditable(purchase);
 
@@ -213,8 +214,13 @@ export const PurchaseForm = ({
                 </Button>
               ) : null}
               {renderStatusActions?.({ isDirty })}
-              <Button variant="outline" className="w-full" asChild>
-                <Link to="/purchases">Volver</Link>
+              <Button
+                variant="outline"
+                className="w-full"
+                type="button"
+                onClick={() => navigate(-1)}
+              >
+                Volver
               </Button>
             </div>
           </div>

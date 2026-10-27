@@ -37,7 +37,7 @@ export const ProductFormPage = () => {
     } else {
       await createProduct.mutateAsync(payload);
     }
-    navigate("/products");
+    navigate(-1);
   };
 
   if (isEditing && productQuery.isPending) {
