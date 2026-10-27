@@ -16,7 +16,6 @@ export interface PriorityCustomer {
 }
 
 export interface DashboardSummary {
-  totalCustomers: number;
   salesThisMonth: Decimal;
   /** Receivables: sales still pending payment, any date. Decimal as string. */
   pendingPaymentsTotal?: string;
