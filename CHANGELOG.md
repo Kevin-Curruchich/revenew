@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.20.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.19.0...v0.20.0) (2026-10-27)
+
+
+### Features
+
+* **auth:** confirm password on signup and show/hide password ([f4e6cf4](https://github.com/Kevin-Curruchich/revenew/commit/f4e6cf4d9be8ce0584a28a383ba8c457abc39855))
+* multi-business signup, team management and blocked-account handling ([9795538](https://github.com/Kevin-Curruchich/revenew/commit/9795538f1efe35ed194cc22796a9cef0dd8a125d))
+
 ## [0.19.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.18.1...v0.19.0) (2026-10-27)
 
 
