@@ -55,11 +55,6 @@ export const DashboardPage = () => {
           )}
           to="/sales?is_payment_pending=true"
         />
-        <StatCard label="Seguimiento Pendiente" value={data.pendingFollowUps} />
-        <StatCard
-          label="Compras Próximas (7 días)"
-          value={data.upcomingPurchases7Days}
-        />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
