@@ -2,13 +2,7 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Combobox } from "@/components/shared/Combobox";
 import { FormField } from "@/components/shared/FormField";
 import { formatCurrency } from "@/lib/formatters";
 import {
@@ -84,26 +78,19 @@ export const PurchaseItemRow = ({
             control={control}
             name={`items.${index}.productId`}
             render={({ field }) => (
-              <Select
+              <Combobox
+                id={`${fieldId}-product`}
                 value={field.value}
                 onValueChange={field.onChange}
                 disabled={readOnly}
-              >
-                <SelectTrigger
-                  id={`${fieldId}-product`}
-                  className="w-full"
-                  aria-invalid={!!itemErrors?.productId}
-                >
-                  <SelectValue placeholder="Selecciona un producto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name} ({product.sku})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                aria-invalid={!!itemErrors?.productId}
+                placeholder="Selecciona un producto"
+                searchPlaceholder="Buscar producto..."
+                options={products.map((product) => ({
+                  value: product.id,
+                  label: `${product.name} (${product.sku})`,
+                }))}
+              />
             )}
           />
         </FormField>
