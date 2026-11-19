@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.21.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.20.0...v0.21.0) (2026-11-19)
+
+
+### Features
+
+* **cash:** record manual cash movements; drop partner balance and capital card ([0809baf](https://github.com/Kevin-Curruchich/revenew/commit/0809bafb27a0f2254df7bca184ca3cdd2018cf4b))
+* **nav:** tabbed Agenda and Configuración ([5e5c14c](https://github.com/Kevin-Curruchich/revenew/commit/5e5c14ca5d225328db0fdd61fbcdad4996562bf5))
+* **ui:** searchable combobox for customer and product pickers ([41de41c](https://github.com/Kevin-Curruchich/revenew/commit/41de41c4fb8f6ff13c8b5057bcdba5eb3e70c6bd))
+
 ## [0.20.0](https://github.com/Kevin-Curruchich/revenew/compare/v0.19.0...v0.20.0) (2026-10-27)
 
 
