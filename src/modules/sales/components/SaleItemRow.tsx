@@ -3,13 +3,7 @@ import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Combobox } from "@/components/shared/Combobox";
 import { FormField } from "@/components/shared/FormField";
 import { formatCurrency } from "@/lib/formatters";
 import {
@@ -89,36 +83,24 @@ export const SaleItemRow = ({
           name={`items.${index}.productId`}
           control={control}
           render={({ field }) => (
-            <Select
+            <Combobox
+              id={`${fieldId}-product`}
               value={field.value}
               onValueChange={(productId) => {
                 field.onChange(productId);
                 handleProductChange(productId);
               }}
-            >
-              <SelectTrigger
-                id={`${fieldId}-product`}
-                className="w-full"
-                aria-invalid={!!itemErrors?.productId}
-              >
-                <SelectValue placeholder="Selecciona un producto" />
-              </SelectTrigger>
-              <SelectContent>
-                {products.map((product) => (
-                  <SelectItem
-                    key={product.id}
-                    value={product.id}
-                    disabled={product.stock === 0}
-                  >
-                    {product.name} ({product.sku})
-                    {product.stock !== undefined
-                      ? ` - Stock: ${product.stock}`
-                      : ""}
-                    {product.stock === 0 ? " (Sin stock)" : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              aria-invalid={!!itemErrors?.productId}
+              placeholder="Selecciona un producto"
+              searchPlaceholder="Buscar producto..."
+              options={products.map((product) => ({
+                value: product.id,
+                label: `${product.name} (${product.sku})${
+                  product.stock !== undefined ? ` - Stock: ${product.stock}` : ""
+                }${product.stock === 0 ? " (Sin stock)" : ""}`,
+                disabled: product.stock === 0,
+              }))}
+            />
           )}
         />
       </FormField>

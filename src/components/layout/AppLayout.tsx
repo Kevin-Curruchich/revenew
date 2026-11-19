@@ -43,9 +43,8 @@ const navItems = [
   { path: "/purchases", label: "Compras", icon: "🛒" },
   { path: "/cash", label: "Caja", icon: "💵" },
   { path: "/profit", label: "Ganancias", icon: "📈" },
-  { path: "/follow-up", label: "Seguimiento", icon: "📋" },
-  { path: "/calendar", label: "Calendario", icon: "📅" },
-  { path: "/team", label: "Equipo", icon: "🧑‍🤝‍🧑", adminOnly: true },
+  { path: "/agenda", label: "Agenda", icon: "📅" },
+  { path: "/settings", label: "Configuración", icon: "⚙️", adminOnly: true },
 ];
 
 interface NavLinksProps {

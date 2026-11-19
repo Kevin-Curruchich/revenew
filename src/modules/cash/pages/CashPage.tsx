@@ -31,7 +31,8 @@ import {
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { StatCard } from "@/modules/dashboard/components/StatCard";
-import { CapitalCard } from "../components/CapitalCard";
+import { useCapitalReport } from "@/modules/products/hooks/useCapitalReport";
+import { NewCashMovementDialog } from "../components/NewCashMovementDialog";
 import {
   formatMovementDate,
   getCashMovementTypeBadge,
@@ -77,6 +78,7 @@ export const CashPage = () => {
   });
 
   const summary = useCashSummary();
+  const capital = useCapitalReport();
   const { data, isPending, isError, error, refetch } = useCashMovements({
     start_date: startDate,
     end_date: endDate,
@@ -91,6 +93,7 @@ export const CashPage = () => {
       <PageHeader
         title="Caja"
         description="Movimientos de efectivo del negocio"
+        actions={<NewCashMovementDialog />}
       />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -99,14 +102,14 @@ export const CashPage = () => {
           value={summary.data ? formatCurrency(summary.data.balance) : "—"}
         />
         <StatCard
-          label="Saldo del socio (aportes − retiros)"
+          label="Por cobrar"
           value={
-            summary.data ? formatCurrency(summary.data.owner_balance) : "—"
+            capital.data
+              ? formatCurrency(capital.data.totals.receivable)
+              : "—"
           }
         />
       </div>
-
-      <CapitalCard />
 
       <Card>
         <CardHeader>

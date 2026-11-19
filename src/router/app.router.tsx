@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate, type RouteObject } from "react-router";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { FullPageLoader } from "@/components/ui/loading-spinner";
+import { TabNavLayout } from "@/components/shared/TabNav";
 import { AdminGuard, AuthGuard, LoginGuard } from "@/modules/auth";
 import { NotFoundPage, RouteErrorPage } from "./RouteErrorPage";
 
@@ -179,10 +180,42 @@ export const appRouter = createBrowserRouter([
                 ...page(() => import("@/modules/cash").then((m) => m.CashPage)),
               },
               {
-                path: "follow-up",
-                ...page(() =>
-                  import("@/modules/follow-up").then((m) => m.FollowUpListPage),
+                path: "agenda",
+                element: (
+                  <TabNavLayout
+                    label="Agenda"
+                    tabs={[
+                      { to: "calendar", label: "Calendario" },
+                      { to: "follow-up", label: "Seguimiento" },
+                    ]}
+                  />
                 ),
+                children: [
+                  { index: true, element: <Navigate to="calendar" replace /> },
+                  {
+                    path: "calendar",
+                    ...page(() =>
+                      import("@/modules/calendar").then((m) => m.CalendarPage),
+                    ),
+                  },
+                  {
+                    path: "follow-up",
+                    ...page(() =>
+                      import("@/modules/follow-up").then(
+                        (m) => m.FollowUpListPage,
+                      ),
+                    ),
+                  },
+                ],
+              },
+              // Old paths, kept so saved links still open.
+              {
+                path: "calendar",
+                element: <Navigate to="/agenda/calendar" replace />,
+              },
+              {
+                path: "follow-up",
+                element: <Navigate to="/agenda/follow-up" replace />,
               },
               {
                 path: "agent",
@@ -205,19 +238,29 @@ export const appRouter = createBrowserRouter([
                 ],
               },
               {
-                path: "calendar",
-                ...page(() =>
-                  import("@/modules/calendar").then((m) => m.CalendarPage),
-                ),
-              },
-              {
                 element: <AdminGuard />,
                 children: [
                   {
-                    path: "team",
-                    ...page(() =>
-                      import("@/modules/team").then((m) => m.TeamPage),
+                    path: "settings",
+                    element: (
+                      <TabNavLayout
+                        label="Configuración"
+                        tabs={[{ to: "team", label: "Equipo" }]}
+                      />
                     ),
+                    children: [
+                      { index: true, element: <Navigate to="team" replace /> },
+                      {
+                        path: "team",
+                        ...page(() =>
+                          import("@/modules/team").then((m) => m.TeamPage),
+                        ),
+                      },
+                    ],
+                  },
+                  {
+                    path: "team",
+                    element: <Navigate to="/settings/team" replace />,
                   },
                 ],
               },

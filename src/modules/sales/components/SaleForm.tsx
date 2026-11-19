@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Combobox } from "@/components/shared/Combobox";
 import { DatePicker } from "@/components/shared/DatePicker";
 import {
   Select,
@@ -121,25 +122,18 @@ export const SaleForm = ({
                       name="customerId"
                       control={control}
                       render={({ field }) => (
-                        <Select
+                        <Combobox
+                          id="customerId"
                           value={field.value}
                           onValueChange={field.onChange}
-                        >
-                          <SelectTrigger
-                            id="customerId"
-                            className="w-full"
-                            aria-invalid={!!errors.customerId}
-                          >
-                            <SelectValue placeholder="Selecciona un cliente" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {customers.map((customer) => (
-                              <SelectItem key={customer.id} value={customer.id}>
-                                {customer.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          aria-invalid={!!errors.customerId}
+                          placeholder="Selecciona un cliente"
+                          searchPlaceholder="Buscar cliente..."
+                          options={customers.map((customer) => ({
+                            value: customer.id,
+                            label: customer.name,
+                          }))}
+                        />
                       )}
                     />
                   )}

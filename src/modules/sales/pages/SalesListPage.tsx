@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DateRangePicker } from "@/components/shared/DateRangePicker";
+import { Combobox } from "@/components/shared/Combobox";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Pagination } from "@/components/shared/Pagination";
 import {
@@ -46,7 +47,7 @@ import { formatShortDate } from "@/lib/dates";
 
 const PAGE_SIZE = 10;
 const ALL_OPTION = "all";
-// TODO: replace with a searchable combobox once there are many customers/products.
+// shortcut: options are filtered client-side from the first 200; search the API when catalogs grow past that.
 const CUSTOMER_OPTIONS_LIMIT = 200;
 const PRODUCT_OPTIONS_LIMIT = 200;
 const PAYMENT_STATUS_OPTIONS = [
@@ -118,53 +119,44 @@ export const SalesListPage = () => {
             </p>
           ) : null}
           <div className="flex flex-col flex-wrap gap-4 pt-4 sm:flex-row">
-            <Select
+            <Combobox
+              className="sm:w-56"
+              aria-label="Filtrar por cliente"
               value={customerId || ALL_OPTION}
               onValueChange={(value) =>
                 setParams({
                   customer_id: value === ALL_OPTION ? null : value,
                 })
               }
-            >
-              <SelectTrigger
-                className="w-full sm:w-56"
-                aria-label="Filtrar por cliente"
-              >
-                <SelectValue placeholder="Filtrar por cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_OPTION}>Todos los clientes</SelectItem>
-                {customersData?.data.map((customer) => (
-                  <SelectItem key={customer.id} value={customer.id}>
-                    {customer.name}
-                    {customer.company ? ` · ${customer.company}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
+              searchPlaceholder="Buscar cliente..."
+              options={[
+                { value: ALL_OPTION, label: "Todos los clientes" },
+                ...(customersData?.data ?? []).map((customer) => ({
+                  value: customer.id,
+                  label: customer.company
+                    ? `${customer.name} · ${customer.company}`
+                    : customer.name,
+                })),
+              ]}
+            />
+            <Combobox
+              className="sm:w-56"
+              aria-label="Filtrar por producto"
               value={productId || ALL_OPTION}
               onValueChange={(value) =>
                 setParams({
                   product_id: value === ALL_OPTION ? null : value,
                 })
               }
-            >
-              <SelectTrigger
-                className="w-full sm:w-56"
-                aria-label="Filtrar por producto"
-              >
-                <SelectValue placeholder="Filtrar por producto" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_OPTION}>Todos los productos</SelectItem>
-                {productsData?.data.map((product) => (
-                  <SelectItem key={product.id} value={product.id}>
-                    {product.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              searchPlaceholder="Buscar producto..."
+              options={[
+                { value: ALL_OPTION, label: "Todos los productos" },
+                ...(productsData?.data ?? []).map((product) => ({
+                  value: product.id,
+                  label: product.name,
+                })),
+              ]}
+            />
             <Select
               value={paymentStatus || ALL_OPTION}
               onValueChange={(value) =>
